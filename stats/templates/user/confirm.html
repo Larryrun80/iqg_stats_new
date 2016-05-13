@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %} create user {% endblock %}
+{% block content %} 
+
+{% filter markdown %}
+
+{% if email %}
+
+  Hi {{ email }}, 您的账号已经成功激活 | 点击 <a href="{{ url_for('home.index') }}">此处</a> 返回首页
+
+{% endif %}
+
+{% endfilter %}
+
+{% endblock %}

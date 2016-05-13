@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %} signin {% endblock %}
+{% block content %} 
+
+  {% from 'macro/forms.html' import render_field %}
+  <form method=post action="{{ url_for('user.signin') }}">
+    <dl>
+      {{ render_field(form.email) }}
+      {{ render_field(form.password) }}
+      {{ form.csrf_token }}
+    </dl>
+    <p><button type="submit">登陆</button>
+  </form>
+
+{% endblock %}

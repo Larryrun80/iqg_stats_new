@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %} create user {% endblock %}
+{% block content %} 
+
+  {% from 'macro/forms.html' import render_field %}
+  <form method=post action="{{ url_for('user.create_account') }}">
+    <dl>
+      {{ render_field(form.username) }}
+      {{ render_field(form.realname) }}
+      {{ render_field(form.email) }}
+      {{ render_field(form.mobile) }}
+      {{ render_field(form.password) }}
+      {{ render_field(form.confirm) }}
+      {{ render_field(form.accept_tos) }}
+      {{ form.recaptcha }}
+      {{ form.csrf_token }}
+    </dl>
+    <p><button type="submit">注册</button>
+  </form>
+
+{% endblock %}

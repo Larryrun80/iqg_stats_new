@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %} reset password {% endblock %}
+{% block content %} 
+
+  {% from 'macro/forms.html' import render_field %}
+  <form method=post action="{{ url_for('user.reset_with_token', token=token) }}">
+    <dl>
+      {{ render_field(form.password) }}
+      {{ form.csrf_token }}
+    </dl>
+    <p><button type="submit">重置密码</button>
+  </form>
+
+{% endblock %}
