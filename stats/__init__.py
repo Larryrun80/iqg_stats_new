@@ -9,6 +9,14 @@ app.config.from_envvar('APP_CONFIG_FILE')
 from flaskext.markdown import Markdown
 Markdown(app)
 
+# mail
+from flask_mail import Mail
+mail = Mail(app)
+
+# profile
+# from flask.ext.profile import Profiler
+# Profiler(app)
+
 # Toolbar
 from flask_debugtoolbar import DebugToolbarExtension
 toolbar = DebugToolbarExtension(app)

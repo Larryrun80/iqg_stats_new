@@ -6,8 +6,10 @@ SERVICE_MAIL = 'guonan@doweidu.com'
 
 # notificate mail sender
 MAIL_SERVER = 'smtp.ym.163.com'
-MAIL_FROM = "guonan@doweidu.com"
-MAIL_USER = 'guonan@doweidu.com'
+MAIL_PORT = 25
+MAIL_USE_TLS = False
+MAIL_USE_SSL = False
+MAIL_MAX_EMAILS = None
 
 # Debug tools
 DEBUG_TB_INTERCEPT_REDIRECTS = False
