@@ -4,20 +4,7 @@
 
 {% filter markdown %}
 
-{% if current_user %}
-  Hi {{ current_user.username }}!
-  Your Infomation:
-  id: {{ current_user.get_id() }}
-  real name: {{ current_user.realname }}
-  email: {{ current_user.email }}
-  actived: {{ current_user.actived }}
-  enabled: {{ current_user.enabled }}
-  is_authenticated: {{ current_user.is_authenticated }}
-  is_active: {{ current_user.is_active }}
-  is_anonymous: {{ current_user.is_anonymous }}
-
-<a href= {{url_for('user.logout')}} >logout</a>
-{% endif %}
+## Hello, flask world
 
 {% endfilter %}
 {% endblock %}
