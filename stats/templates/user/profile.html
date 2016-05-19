@@ -14,6 +14,10 @@
 
   Actived:  {{ current_user.is_active }}
 
+  Authorized: {{ current_user.is_authenticated }}
+
+  Roles: {{ current_user.roles }}
+
   <div class="clearfix" style="margin-bottom: 30px;"></div>
 
   <a href="{{ url_for('home.index') }}">返回首页</a>

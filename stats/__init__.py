@@ -26,18 +26,6 @@ from flask_bcrypt import Bcrypt
 
 bcrypt = Bcrypt(app)
 
-# Flask-login
-from flask_login import LoginManager
-from .models.user import User
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'user.signin'
-
-
-@login_manager.user_loader
-def load_user(userid):
-    return User(id=userid)
-
 # exception and database
 from .models.mysql import init_db
 
@@ -55,6 +43,36 @@ def teardown(exception):
     db = getattr(g, 'mysql', None)
     if db is not None:
         db.close()
+
+# Flask-login
+from flask_login import LoginManager
+from .models.user import User
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'user.signin'
+
+
+@login_manager.user_loader
+def load_user(userid):
+    try:
+        return User(id=userid)
+    except:
+        return User()
+
+# flask-principal
+from flask_principal import Principal, identity_loaded, RoleNeed
+principals = Principal(app)
+
+
+@identity_loaded.connect
+def on_identity_loaded(sender, identity):
+    try:
+        user = User(id=identity.id)
+
+        for role in user.roles:
+            identity.provides.add(RoleNeed(role))
+    except:
+        pass
 
 # blueprint
 from .views.home import home

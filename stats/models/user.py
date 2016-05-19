@@ -150,9 +150,39 @@ class User(BaseModel):
         return updated_row
 
     def update_status(self):
-        self.is_authenticated = bool(self.enabled)
-        self.is_active = bool(self.enabled and self.actived)
+        self.is_authenticated = bool(self.enabled and self.actived)
+        self.is_active = bool(self.enabled)
         self.is_anonymous = bool(self.username is None)
+        self.roles = self.get_roles(self.id)
+        print('roles: {}'.format(self.roles))
 
     def get_id(self):
         return self.id
+
+    def get_roles(self, uid=None):
+        if uid is None:
+            if self.id is None:
+                return ['anonymous']
+            elif not self.actived:
+                return ['inactive']
+
+        sql = '''
+                SELECT r.role
+                  FROM users u
+             LEFT JOIN user_role ur ON u.id=ur.user_id
+             LEFT JOIN roles r on r.id=ur.role_id
+                 WHERE u.id={uid}
+        '''.format(uid=self.id)
+
+        roles = []
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+
+        if result:
+            for (role,) in result:
+                roles.append(role)
+        else:
+            roles = ['Anonymous']
+
+        return roles
