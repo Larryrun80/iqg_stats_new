@@ -154,6 +154,7 @@ class User(BaseModel):
         self.is_active = bool(self.enabled)
         self.is_anonymous = bool(self.username is None)
         self.roles = self.get_roles(self.id)
+        print('id: {}'.format(self.id))
         print('roles: {}'.format(self.roles))
 
     def get_id(self):
@@ -179,10 +180,11 @@ class User(BaseModel):
             cursor.execute(sql)
             result = cursor.fetchall()
 
-        if result:
-            for (role,) in result:
-                roles.append(role)
-        else:
+        if result == ((None,), ):  # if no role designed, give Anonymous
             roles = ['Anonymous']
+        else:
+            for (role,) in result:  # if roles designed, update user's roles
+                if role:
+                    roles.append(role)
 
         return roles

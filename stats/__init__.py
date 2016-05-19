@@ -1,4 +1,8 @@
-from flask import Flask, g
+import os
+
+from flask import Flask, g, render_template
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config.default')
@@ -80,3 +84,44 @@ from .views.user import bp_user
 
 app.register_blueprint(home)
 app.register_blueprint(bp_user, url_prefix='/account')
+
+# error page
+@app.errorhandler(404)
+def file_not_found(error):
+    return render_template('error/404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error/500.html'), 500
+
+# error log
+if not app.debug:
+    import logging
+    from logging.handlers import SMTPHandler
+    credentials = None
+    if app.config['MAIL_USERNAME'] and app.config['MAIL_PASSWORD']:
+        credentials = (app.config['MAIL_USERNAME'],
+                       app.config['MAIL_PASSWORD'])
+    mail_handler = SMTPHandler((app.config['MAIL_SERVER'],
+                                app.config['MAIL_PORT']),
+                               app.config['MAIL_DEFAULT_SENDER'],
+                               app.config['ADMIN_MAIL'],
+                               'iqg stats failure',
+                               credentials)
+    mail_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(mail_handler)
+
+    from logging.handlers import TimedRotatingFileHandler
+    log_file = '{dir}/{file}'.format(dir=basedir, file=app.config['ERROR_LOG'])
+    if not os.path.exists(os.path.split(log_file)[0]):
+        os.makedirs(os.path.split(log_file)[0])
+    file_handler = TimedRotatingFileHandler(log_file,
+                                            when='midnight',
+                                            interval=1,
+                                            backupCount=0)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    app.logger.setLevel(logging.INFO)
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.info('iqg stats startup')

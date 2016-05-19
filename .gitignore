@@ -14,3 +14,6 @@ instance/
 # ignore some test files
 
 # tmplog
+logs/
+*/logs/
+*/*.log

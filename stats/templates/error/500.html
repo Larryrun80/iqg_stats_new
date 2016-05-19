@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %} Unexpected error occurred {% endblock %}
+{% block content %} 
+
+{% filter markdown %}
+
+### 发生了一个错误
+
+### 我们已经邮件通知了管理员，这个问题稍后会得到修复，抱歉对您造成的不便
+
+##### <a href="{{url_for('home.index')}}">返回首页</a>
+
+{% endfilter %}
+{% endblock %}
