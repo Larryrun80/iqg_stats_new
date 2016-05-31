@@ -1,6 +1,8 @@
 - title:  "测试line数据"
   route:  "test"
-  author: "Larry"
+  author: 
+    author: "Larry"
+    email: "guonan@doweidu.com"
   access: ["admin"]
   lines:
     - label: "4301 在线活动"

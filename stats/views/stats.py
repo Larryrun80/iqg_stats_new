@@ -46,7 +46,8 @@ def line(tag):
     data = {
         'title': l.title,
         'route': l.route,
-        'author': l.author,
+        'author': l.author['author'],
+        'email': l.author['email'],
     }
     if request.method == 'POST':
         lines = l.get_result()
