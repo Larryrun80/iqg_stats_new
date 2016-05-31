@@ -5,18 +5,21 @@ from flask import (Blueprint,
                    abort,
                    flash,
                    request)
-from flask.ext.login import login_required, logout_user, login_user,\
-    current_user
+from flask.ext.login import (login_required,
+                             logout_user,
+                             login_user,
+                             current_user)
 from flask_principal import identity_changed, Identity
 
 from .. import app
-from ..models.forms import RegistrationForm, EmailPasswordForm,\
-    EmailForm, PasswordForm
+from ..models.forms import (RegistrationForm,
+                            EmailPasswordForm,
+                            EmailForm,
+                            PasswordForm)
 from ..models.user import User
 from ..utils.security import ts
 from ..models.notificate import send_active_email
-from ..models.roles import anonymous_permission,\
-    admin_permission, marketing_permission
+from ..models.roles import anonymous_permission
 
 bp_user = Blueprint('user', __name__)
 

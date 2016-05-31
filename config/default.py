@@ -17,3 +17,7 @@ DEBUG_TB_INTERCEPT_REDIRECTS = False
 
 # error info dir
 ERROR_LOG = 'logs/error.log'
+
+# stats path
+QUERY_PATH = 'items/query.yaml'
+LINE_PATH = 'items/charts/lines.yaml'

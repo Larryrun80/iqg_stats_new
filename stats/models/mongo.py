@@ -1,17 +1,17 @@
-import pymysql
+from pymongo import MongoClient
 
 from .. import app
 from .error import AppError
 
 
-def init_db(tag=''):
-    params = ('host', 'port', 'user', 'passwd', 'db', 'charset')
-    mysql_params = []
+def init_mongo(tag=''):
+    params = ('host', 'port', 'user', 'passwd', 'db')
+    mongo_params = []
 
     if tag != '':
         tag = tag + '_'
     for param in params:
-        mysql_params.append('{tag}{param}'.format(tag=tag, param=param))
+        mongo_params.append('{tag}{param}'.format(tag=tag, param=param))
 
     db_conf = {}
     for param in params:
@@ -24,5 +24,11 @@ def init_db(tag=''):
             raise AppError('MISSING_PARAM', param=conf_param)
     if 'port' in db_conf.keys():
         db_conf['port'] = int(db_conf['port'])
-    cnx = pymysql.connect(**db_conf)
+
+    db_str = 'mongodb://{0}:{1}@{2}:{3}/{4}'.format(db_conf['user'],
+                                                    db_conf['passwd'],
+                                                    db_conf['host'],
+                                                    db_conf['port'],
+                                                    db_conf['db'])
+    cnx = MongoClient(db_str)
     return cnx

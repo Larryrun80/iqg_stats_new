@@ -1,0 +1,16 @@
+- title:  "测试line数据"
+  route:  "test"
+  author: "Larry"
+  access: ["admin"]
+  lines:
+    - label: "4301 在线活动"
+      color: "rgba(75,192,192,1)"
+      source: "iqg_mongo"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 4301, "dates":{x_value}})'
+    - label: "3302 在线活动"
+      color: "rgba(75,75,75,1)"
+      source: "iqg_mongo"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 3302, "dates":{x_value}})'
+  x_axis:  
+    type: 'date'
+    duration:  30

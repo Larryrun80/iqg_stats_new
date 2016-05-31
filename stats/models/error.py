@@ -17,6 +17,10 @@ class AppError(Exception):
                'attribute {attr} not found in object {obj}')
     NO_OBJ = (110002,
               '{obj} not found')
+    FILE_NOT_FOUND = (120001,
+                      'file {file} not found')
+    WRONG_CODE = (120002,
+                  'this is not a valid code: {code}')
 
     # User
     NO_USER = (200000,
@@ -25,6 +29,19 @@ class AppError(Exception):
                                    'email {email} had been registered')
     WRONG_PASSWORD = (200002,
                       'incorrect password, please try again')
+
+    # Query
+    UNKNOWN_SOURCE = (300001,
+                      'unknown data source: {source}')
+
+    # Line
+    NO_X_AXIS = (400001,
+                 'x_axis is not defined correctly')
+
+    # DATABASE
+    INVALID_QUERY = (900001,
+                     'not a valid query: {query}')
+
 
     def __init__(self, name, **kargs):
         if name not in dir(self):

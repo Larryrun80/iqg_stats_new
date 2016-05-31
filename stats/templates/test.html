@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %} query {% endblock %}
+{% block content %} 
+<div id="firstDiv">hello</div>
+<script src="{{ url_for('static', filename='js/vendor/spin.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vendor/jquery.spin.js') }}"></script>
+    <script type="text/javascript">        
+        $("#firstDiv").spin();
+    </script>
+{% endblock %}
