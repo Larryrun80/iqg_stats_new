@@ -1,0 +1,15 @@
+- title:  "测试查询数据"
+  route:  "test"
+  author: "Larry"
+  access: ["admin"]
+  source: "iqg_ro"
+  columns: ["用户名", "手机号"]
+  code:   "select username, mobile from user order by id desc"
+  count:  "select count(0) from user"
+- title:  "测试2"
+  route:  "another_test"
+  author: "Larry"
+  access: ["admin"]
+  source: "iqg_ro"
+  code:   "select username, created_at, enabled from user order by id desc"
+  count:  "select count(0) from user"

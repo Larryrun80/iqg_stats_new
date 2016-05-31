@@ -154,8 +154,6 @@ class User(BaseModel):
         self.is_active = bool(self.enabled)
         self.is_anonymous = bool(self.username is None)
         self.roles = self.get_roles(self.id)
-        print('id: {}'.format(self.id))
-        print('roles: {}'.format(self.roles))
 
     def get_id(self):
         return self.id

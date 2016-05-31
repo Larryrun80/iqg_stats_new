@@ -2,12 +2,12 @@ import os
 
 from flask import Flask, g, render_template
 
-basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config.default')
 app.config.from_pyfile('config.py')
 app.config.from_envvar('APP_CONFIG_FILE')
+app.basedir = os.path.abspath(os.path.dirname(__file__))
 
 # markdown
 from flaskext.markdown import Markdown
@@ -22,8 +22,8 @@ mail = Mail(app)
 # Profiler(app)
 
 # Toolbar
-from flask_debugtoolbar import DebugToolbarExtension
-toolbar = DebugToolbarExtension(app)
+# from flask_debugtoolbar import DebugToolbarExtension
+# toolbar = DebugToolbarExtension(app)
 
 # bcrypt
 from flask_bcrypt import Bcrypt
@@ -38,12 +38,10 @@ from .models.mysql import init_db
 def init_request():
     # mysql settings
     g.mysql = init_db()
-    print('mysql1: {}'.format(g.mysql))
 
 
 @app.teardown_request
 def teardown(exception):
-    print('closing database {}'.format(g.mysql))
     db = getattr(g, 'mysql', None)
     if db is not None:
         db.close()
@@ -81,9 +79,11 @@ def on_identity_loaded(sender, identity):
 # blueprint
 from .views.home import home
 from .views.user import bp_user
+from .views.stats import bp_stats
 
 app.register_blueprint(home)
 app.register_blueprint(bp_user, url_prefix='/account')
+app.register_blueprint(bp_stats, url_prefix='/data')
 
 # error page
 @app.errorhandler(404)
@@ -112,7 +112,8 @@ if not app.debug:
     app.logger.addHandler(mail_handler)
 
     from logging.handlers import TimedRotatingFileHandler
-    log_file = '{dir}/{file}'.format(dir=basedir, file=app.config['ERROR_LOG'])
+    log_file = '{dir}/{file}'.format(dir=app.basedir,
+                                     file=app.config['ERROR_LOG'])
     if not os.path.exists(os.path.split(log_file)[0]):
         os.makedirs(os.path.split(log_file)[0])
     file_handler = TimedRotatingFileHandler(log_file,

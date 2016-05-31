@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block title %} chart {% endblock %}
+{% block content %} 
+{% if data %}
+{% filter markdown %}
+#### {{ data['title'] }}
+##### - Authored by [{{ data['author'] }}](mailto:guonan@doweidu.com)
+{% endfilter %}
+<form method=post action="{{ url_for('stats.line', tag=data['route']) }}">
+    <button type="submit" id="myButton" data-loading-text="Loading..." class="btn btn-primary" autocomplete="off">
+        加载数据
+    </button>
+</form>
+<script>
+  $('#myButton').on('click', function () {
+    var $btn = $(this).button('loading')
+  })
+</script>
+    
+    <canvas id="larryChart" width="400" height="400"></canvas>
+    {% if data['lines'] %}
+    <script src="{{ url_for('static', filename='js/vendor/Chart.js') }}"></script>
+    <script>
+    var data = {
+        labels: {{ data['labels'] | safe }},
+        datasets: [
+                      {% for line in data['lines'] %}
+                      {
+                        label: "{{ line['label'] }}",
+                        fill: false,
+                        lineTension: 0.1,
+                        backgroundColor: "{{ line['color'] }}",
+                        borderColor: "{{ line['color'] }}",
+                        borderCapStyle: 'butt',
+                        borderDash: [],
+                        borderDashOffset: 0.0,
+                        borderJoinStyle: 'bevel',
+                        pointBorderColor: "{{ line['color'] }}",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: "{{ line['color'] }}",
+                        pointHoverBorderColor: "rgba(220,220,220,1)",
+                        pointHoverBorderWidth: 2,
+                        pointRadius: 1,
+                        pointHitRadius: 10,
+                        data: {{ line['data'] }},
+                      },
+                      {% endfor %}
+                  ]
+    };
+
+    var ctx = document.getElementById("larryChart");
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+        }
+    });
+    $btn.button('reset')
+    </script>
+    {% endif %}
+{% endif %}
+{% endblock %}

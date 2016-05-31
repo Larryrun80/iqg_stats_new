@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title %} query {% endblock %}
+{% block content %} 
+
+{% if data and data['columns'] and data['rows'] %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pagidation.css') }}">
+<span>{{ data['title'] }}</span>
+{{ pagination.info }}
+{{ pagination.links }}
+<table class="table table-hover">
+<thead>
+    <tr>
+        {% for col in data['columns'] %}
+            <th>{{ col }}</th>
+        {% endfor %}
+    </tr>
+</thead>
+<tbody>
+{% for row in data['rows'] %}
+    <tr>
+        {% for col in row %}
+            <td> {{ col }} </td>
+        {% endfor %}
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+{{ pagination.links }}
+{% else %}
+No Data Found
+{% endif %}
+
+{% endblock %}
