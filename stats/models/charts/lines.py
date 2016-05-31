@@ -1,16 +1,13 @@
-import json
 import os
-import re
 
 import arrow
 import yaml
 
 from ... import app
-from ..error import AppError
-from ..mongo import init_mongo
+from ..stats_base import StatsBase
 
 
-class LineItem():
+class LineItem(StatsBase):
     query_path = '{dir}/{file}'.format(
         dir=app.basedir,
         file=app.config['LINE_PATH'])
@@ -41,7 +38,7 @@ class LineItem():
                         setattr(self, attr, y_item.get(attr, None))
                     break
         else:
-            raise AppError('FILE_NOT_FOUND', file=self.query_path)
+            raise self.AppError('FILE_NOT_FOUND', file=self.query_path)
 
     def get_x_values(self):
         if not self.x_axis_value:
@@ -56,7 +53,7 @@ class LineItem():
                         xs.append(r.format('YYYY-MM-DD'))
                     self.x_axis_value = xs
             else:
-                raise AppError('NO_X_AXIS')
+                raise self.AppError('NO_X_AXIS')
 
     def get_result(self):
         for i, line in enumerate(self.lines, 0):
@@ -68,31 +65,18 @@ class LineItem():
                                                           randint(0, 255),
                                                           randint(0, 255))
             if line['source'] == 'iqg_mongo':
-                line['data'] = self.get_mongo_result(line)
+                line['data'] = self.get_line_mongo_result(line)
             else:
-                raise AppError('UNKNOWN_SOURCE', source=self.source)
+                raise self.AppError('UNKNOWN_SOURCE', source=self.source)
         return self.lines
 
-    def get_mongo_result(self, line):
+    def get_line_mongo_result(self, line):
         if not self.x_axis_value:
             self.get_x_values()
 
-        cnx = init_mongo(line['source'])
-        codes = line['code'].split('.')
-        if len(codes) < 3:
-            raise AppError('WRONG_CODE', code=line['code'])
-        collection = cnx[codes[0]][codes[1]]
-        condition_pattern = r'find\({.*\}\)'
-        condition = re.findall(condition_pattern, codes[2])
-        if condition:
-            condition = condition[0][5:-1]
-        else:
-            raise AppError('INVALID_QUERY', query=line['code'])
-
         result = []
         for x in self.x_axis_value:
-            cdt = condition.replace('{x_value}', '"{}"'.format(x))
-            cdt = json.loads(cdt)
-            result.append(collection.find(cdt).count())
-        cnx.close()
+            code = line['code'].replace('{x_value}', '"{}"'.format(x))
+            result.append(self.get_mongo_result_count(line['source'], code))
+
         return result

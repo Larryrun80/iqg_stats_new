@@ -31,13 +31,13 @@ from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt(app)
 
 # exception and database
-from .models.mysql import init_db
+from .models.mysql import init_mysql
 
 
 @app.before_request
 def init_request():
     # mysql settings
-    g.mysql = init_db()
+    g.mysql = init_mysql()
 
 
 @app.teardown_request
