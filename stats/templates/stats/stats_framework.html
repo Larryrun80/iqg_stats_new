@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %} 
+{% if data %}
+{% filter markdown %}
+#### {{ data['title'] }}
+##### - Authored by [{{ data['author'] }}](mailto:{{ data['email'] }})
+{% endfilter %}
+
+{% block stats %} {% endblock %}
+{% endif %}
+{% endblock %}

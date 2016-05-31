@@ -31,7 +31,10 @@ class QueryItem(StatsBase):
 
     def get_result(self, page_size=0, current_page=1):
         if self.source == 'iqg_ro':
-            data = self.get_mysql_result(self.code, page_size, current_page)
+            data = self.get_mysql_result(self.source,
+                                         self.code,
+                                         page_size,
+                                         current_page)
             if not self.columns:
                 self.columns = data['columns']
             return data['data']
@@ -40,6 +43,6 @@ class QueryItem(StatsBase):
 
     def get_result_count(self):
         if self.source == 'iqg_ro':
-            return self.get_mysql_result_count(self.count)
+            return self.get_mysql_result_count(self.source, self.count)
 
         raise self.AppError('UNKNOWN_SOURCE', source=self.source)
