@@ -16,6 +16,15 @@ class LineItem():
         file=app.config['LINE_PATH'])
     attrs = ('title', 'route', 'author',
              'access', 'lines', 'x_axis')
+    colors = (
+        "rgba(245,166,35,1)",  # orange
+        "rgba(92,155,228,1)",  # blue
+        "rgba(234,64,64,1)",  # red
+        "rgba(132,182,76,1)",  # green
+        "rgba(201,33,235,1)",  # purple
+        "rgba(0,0,0,1)",  # black
+        "rgba(248,231,28,1)"  # yellow
+    )
 
     def __init__(self, name, x_axis=None):
         for attr in self.attrs:
@@ -50,7 +59,14 @@ class LineItem():
                 raise AppError('NO_X_AXIS')
 
     def get_result(self):
-        for line in self.lines:
+        for i, line in enumerate(self.lines, 0):
+            if i < len(self.colors):
+                line['color'] = self.colors[i]
+            else:
+                from random import randint
+                line['color'] = "rgba({},{},{},1)".format(randint(0, 255),
+                                                          randint(0, 255),
+                                                          randint(0, 255))
             if line['source'] == 'iqg_mongo':
                 line['data'] = self.get_mongo_result(line)
             else:
