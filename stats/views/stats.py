@@ -12,8 +12,16 @@ bp_stats = Blueprint('stats', __name__)
 def query(tag):
     from ..models.query import QueryItem
     q = QueryItem(tag)
+    p = None
     if not q.title:
         abort(404)
+
+    data = {
+        'title': q.title,
+        'route': q.route,
+        'author': q.author['author'],
+        'email': q.author['email'],
+    }
 
     current_page = request.args.get('page', 1)
     try:
@@ -24,9 +32,8 @@ def query(tag):
     page_size = 20
     total = q.get_result_count()
 
-    data = {}
-    data['rows'] = q.get_result(page_size=page_size, current_page=current_page)
-    data['title'] = q.title
+    data['rows'] = q.get_result(page_size=page_size,
+                                current_page=current_page)
     data['columns'] = q.columns
 
     # pagination
@@ -43,6 +50,9 @@ def query(tag):
 def line(tag):
     from ..models.charts.lines import LineItem
     l = LineItem(tag)
+    if not l.title:
+        abort(404)
+
     data = {
         'title': l.title,
         'route': l.route,

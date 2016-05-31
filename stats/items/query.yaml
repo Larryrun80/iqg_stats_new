@@ -1,6 +1,8 @@
 - title:  "测试查询数据"
   route:  "test"
-  author: "Larry"
+  author: 
+    author: "Larry"
+    email: "guonan@doweidu.com"
   access: ["admin"]
   source: "iqg_ro"
   columns: ["用户名", "手机号"]
@@ -8,7 +10,9 @@
   count:  "select count(0) from user"
 - title:  "测试2"
   route:  "another_test"
-  author: "Larry"
+  author:
+    author: "Larry"
+    email: "guonan@doweidu.com"
   access: ["admin"]
   source: "iqg_ro"
   code:   "select username, created_at, enabled from user order by id desc"

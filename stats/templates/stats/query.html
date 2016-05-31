@@ -1,12 +1,10 @@
-{% extends "layout.html" %}
+{% extends "stats/stats_framework.html" %}
 {% block title %} query {% endblock %}
-{% block content %} 
+{% block stats %} 
 
 {% if data and data['columns'] and data['rows'] %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pagidation.css') }}">
-<span>{{ data['title'] }}</span>
 {{ pagination.info }}
-{{ pagination.links }}
 <table class="table table-hover">
 <thead>
     <tr>
