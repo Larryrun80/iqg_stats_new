@@ -65,3 +65,14 @@ def line(tag):
         data['lines'] = lines
 
     return render_template('stats/charts/lines.html', data=data)
+
+
+@bp_stats.route('/period/<tag>', methods=['GET', 'POST'])
+def period(tag):
+    from ..models.periodic import PeriodicItem
+    p = PeriodicItem(tag)
+    print(p.get_periods())
+
+    data = []
+
+    return render_template('stats/period.html', data=data)

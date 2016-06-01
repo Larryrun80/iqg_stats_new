@@ -8,7 +8,7 @@ from ..stats_base import StatsBase
 
 
 class LineItem(StatsBase):
-    query_path = '{dir}/{file}'.format(
+    line_path = '{dir}/{file}'.format(
         dir=app.basedir,
         file=app.config['LINE_PATH'])
     attrs = ('title', 'route', 'author',
@@ -28,8 +28,8 @@ class LineItem(StatsBase):
             setattr(self, attr, None)
         self.x_axis_value = x_axis  # 真实的x轴值，list
 
-        if os.path.exists(self.query_path):
-            with open(self.query_path, encoding='utf-8') as f:
+        if os.path.exists(self.line_path):
+            with open(self.line_path, encoding='utf-8') as f:
                 yaml_data = yaml.load(f)
 
             for y_item in yaml_data:
@@ -38,7 +38,7 @@ class LineItem(StatsBase):
                         setattr(self, attr, y_item.get(attr, None))
                     break
         else:
-            raise self.AppError('FILE_NOT_FOUND', file=self.query_path)
+            raise self.AppError('FILE_NOT_FOUND', file=self.line_path)
 
     def get_x_values(self):
         if not self.x_axis_value:
