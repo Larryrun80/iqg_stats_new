@@ -69,8 +69,6 @@ class StatsBase(object):
         code -- a mongo statement using 'find' clause, like:
                 [database].[collection].find({...})
         '''
-        if not self.x_axis_value:
-            self.get_x_values()
 
         cnx = init_mongo(source)
         codes = code.split('.')

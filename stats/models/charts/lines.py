@@ -56,6 +56,9 @@ class LineItem(StatsBase):
                 raise self.AppError('NO_X_AXIS')
 
     def get_result(self):
+        if not self.x_axis_value:
+            self.get_x_values()
+
         for i, line in enumerate(self.lines, 0):
             if i < len(self.colors):
                 line['color'] = self.colors[i]
@@ -71,12 +74,9 @@ class LineItem(StatsBase):
         return self.lines
 
     def get_line_mongo_result(self, line):
-        if not self.x_axis_value:
-            self.get_x_values()
-
         result = []
         for x in self.x_axis_value:
             code = line['code'].replace('{x_value}', '"{}"'.format(x))
-            result.append(self.get_mongo_result_count(line['source'], code))
+            result.append(self.get_mysql_result_count(line['source'], code))
 
         return result

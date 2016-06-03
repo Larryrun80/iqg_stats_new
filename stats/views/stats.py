@@ -71,8 +71,13 @@ def line(tag):
 def period(tag):
     from ..models.periodic import PeriodicItem
     p = PeriodicItem(tag)
-    print(p.get_periods())
-
-    data = []
+    data = {
+        'title': p.title,
+        'route': p.route,
+        'author': p.author['author'],
+        'email': p.author['email'],
+    }
+    if request.method == 'POST':
+        data['data'] = p.assemble_data()
 
     return render_template('stats/period.html', data=data)
