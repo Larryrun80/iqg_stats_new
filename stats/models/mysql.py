@@ -4,7 +4,7 @@ from .. import app
 from .error import AppError
 
 
-def init_db(tag=''):
+def init_mysql(tag=''):
     params = ('host', 'port', 'user', 'passwd', 'db', 'charset')
     mysql_params = []
 
