@@ -71,6 +71,7 @@ def line(tag):
 def period(tag):
     from ..models.periodic import PeriodicItem
     p = PeriodicItem(tag)
+    print(p)
     data = {
         'title': p.title,
         'route': p.route,

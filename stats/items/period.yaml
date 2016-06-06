@@ -1,5 +1,5 @@
-- title:  "周期统计测试"
-  route:  "test"
+- title:  "爱抢购概要数据"
+  route:  "iqg_general"
   author: 
     author: "Larry"
     email: "guonan@doweidu.com"
@@ -10,6 +10,7 @@
     unit: "month"
     span: [1, 1, 1, 1, 1, 1]
     accumulate: False
+    nature: True
   stats:
         - id: "active_user"
           name: "注册用户"
@@ -30,7 +31,7 @@
         - id: "paid_order_count"
           name: "第三方支付订单数"
           source: 'iqg_ro'
-          code: "select count(0) from product_order o left join order_payment_record opr on o.id=opr.product_order_id where opr.is_active=1 and opr.payment_method>1 and o.trade_status=1 and o.created_at>'{start_date}' and o.created_at<'{end_date}';"
+          code: "select count(0) from product_order o left join order_payment_record opr on o.id=opr.product_order_id where opr.is_active=1 and opr.payment_method in (2, 3, 4, 5, 6) and o.trade_status=1 and o.created_at>'{start_date}' and o.created_at<'{end_date}';"
         - id: "order_total_amount"
           name: "订单总额"
           source: 'iqg_ro'
@@ -38,4 +39,4 @@
         - id: "order_total_income"
           name: "第三方支付总额"
           source: 'iqg_ro'
-          code: "select ROUND(sum(opr.amount), 2) from product_order o left join order_payment_record opr on o.id=opr.product_order_id where opr.is_active=1 and opr.payment_method>1 and o.trade_status=1 and o.created_at>'{start_date}' and o.created_at<'{end_date}';"
+          code: "select ROUND(sum(opr.amount), 2) from product_order o left join order_payment_record opr on o.id=opr.product_order_id where opr.is_active=1 and opr.payment_method in (2, 3, 4, 5, 6) and o.trade_status=1 and o.created_at>'{start_date}' and o.created_at<'{end_date}';"

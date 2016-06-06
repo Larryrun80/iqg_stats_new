@@ -10,10 +10,9 @@ class QueryItem(StatsBase):
     query_path = '{dir}/{file}'.format(
         dir=app.basedir,
         file=app.config['QUERY_PATH'])
-    attrs = ('title', 'route', 'author',
-             'access', 'source', 'columns', 'code', 'count')
 
     def __init__(self, name):
+        self.attrs += ['source', 'columns', 'code', 'count']
         for attr in self.attrs:
             setattr(self, attr, None)
 

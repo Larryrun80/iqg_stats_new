@@ -11,10 +11,10 @@ class PeriodicItem(StatsBase):
     periodic_path = '{dir}/{file}'.format(
         dir=app.basedir,
         file=app.config['PERIOD_PATH'])
-    attrs = ('title', 'route', 'author',
-             'access', 'direction', 'total', 'periods', 'stats')
 
     def __init__(self, name):
+        self.attrs += ['direction', 'total', 'periods', 'stats']
+
         for attr in self.attrs:
             setattr(self, attr, None)
 
@@ -36,10 +36,14 @@ class PeriodicItem(StatsBase):
                                 param='span of period',
                                 expect_type='list')
         if self.periods:
-            end_date = arrow.now('Asia/Shanghai').replace(days=-1)
+            end_date = arrow.now('Asia/Shanghai')
             unit = 'days'
             if self.periods['unit'] == 'month':
                 unit = 'months'
+            if self.periods['nature']:
+                param = {unit: 1}
+                end_date = \
+                    end_date.replace(**param).floor(self.periods['unit'])
 
             periods = []
             for i in reversed(range(len(self.periods['span']))):

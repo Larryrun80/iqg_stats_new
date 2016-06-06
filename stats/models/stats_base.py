@@ -8,9 +8,17 @@ from .mongo import init_mongo
 
 class StatsBase(object):
     AppError = AppError
+    attrs = ['title', 'route', 'author', 'access']
 
     def __init__(self, **params):
         super().__init__(**params)
+
+    def __str__(self):
+        kvs = []
+        for attr in self.attrs:
+            kvs.append('{}: {}'.format(attr, getattr(self, attr)))
+
+        return ' | '.join(kvs)
 
     def get_mysql_result(self, source, sql, pagesize, current_page):
         '''Get mysql result

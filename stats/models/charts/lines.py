@@ -11,8 +11,6 @@ class LineItem(StatsBase):
     line_path = '{dir}/{file}'.format(
         dir=app.basedir,
         file=app.config['LINE_PATH'])
-    attrs = ('title', 'route', 'author',
-             'access', 'lines', 'x_axis')
     colors = (
         "rgba(245,166,35,1)",  # orange
         "rgba(92,155,228,1)",  # blue
@@ -24,6 +22,7 @@ class LineItem(StatsBase):
     )
 
     def __init__(self, name, x_axis=None):
+        self.attrs += ['lines', 'x_axis']
         for attr in self.attrs:
             setattr(self, attr, None)
         self.x_axis_value = x_axis  # 真实的x轴值，list
