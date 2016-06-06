@@ -1,0 +1,7 @@
+- title:  "漏斗测试"
+  route:  "test"
+  author: 
+    author: "Larry"
+    email: "guonan@doweidu.com"
+  access: ["admin"]
+  base_code: 'select id from user where created_at>'

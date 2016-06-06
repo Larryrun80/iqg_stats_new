@@ -1,16 +1,31 @@
-- title:  "测试line数据"
-  route:  "test"
+- title:  "一人一城在线商品数据"
+  route:  "city_online_items"
   author: 
     author: "Larry"
     email: "guonan@doweidu.com"
   access: ["admin"]
   lines:
-    - label: "4301 在线活动"
+    - label: "常州 在线活动"
       source: "iqg_mongo"
-      code:  'iqg_prod.campaignbycb.find({"zone_id": 4301, "dates":{x_value}})'
-    - label: "3302 在线活动"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 3204, "dates":{x_value}})'
+    - label: "宁波 在线活动"
       source: "iqg_mongo"
       code:  'iqg_prod.campaignbycb.find({"zone_id": 3302, "dates":{x_value}})'
+    - label: "合肥 在线活动"
+      source: "iqg_mongo"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 3401, "dates":{x_value}})'
+    - label: "济南 在线活动"
+      source: "iqg_mongo"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 3701, "dates":{x_value}})'
+    - label: "宜昌 在线活动"
+      source: "iqg_mongo"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 4205, "dates":{x_value}})'
+    - label: "佛山 在线活动"
+      source: "iqg_mongo"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 4406, "dates":{x_value}})'
+    - label: "东莞 在线活动"
+      source: "iqg_mongo"
+      code:  'iqg_prod.campaignbycb.find({"zone_id": 4419, "dates":{x_value}})'
   x_axis:  
     type: 'date'
     duration:  30
