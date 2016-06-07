@@ -1,0 +1,42 @@
+{% extends "stats/stats_framework.html" %}
+{% block title %} funnel {% endblock %}
+{% block stats %} 
+<form method=post action="{{ url_for('stats.funnel', tag=data['route']) }}">
+    <button type="submit" id="myButton" data-loading-text="Loading..." class="btn btn-primary" autocomplete="off">
+        加载数据
+    </button>
+</form>
+<script>
+  $('#myButton').on('click', function () {
+    var $btn = $(this).button('loading')
+  })
+</script>
+
+{% if data['data'] %}
+<table class="table table-hover">
+<thead>
+    <tr>
+        <th>#</th>
+        <th>项目</th>
+        <th>数量</th>
+        {% if data['data'][0]['conversion'] %}
+            <th>转化率</th>
+        {% endif %}
+    </tr>
+</thead>
+<tbody>
+{% for row in data['data'] %}
+    <tr>
+        <td>{{ loop.index0 }}</td>
+        <td>{{ row['name'] }}</td>
+        <td>{{ row['value'] }}</td>
+        {% if row['conversion'] %}
+            <td>{{ row['conversion'] }}</td>
+        {% endif %}
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+<script>$btn.button('reset')</script>
+{% endblock %}

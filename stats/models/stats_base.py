@@ -20,7 +20,7 @@ class StatsBase(object):
 
         return ' | '.join(kvs)
 
-    def get_mysql_result(self, source, sql, pagesize, current_page):
+    def get_mysql_result(self, source, sql, pagesize=0, current_page=1):
         '''Get mysql result
            Load data from mysql and return
 

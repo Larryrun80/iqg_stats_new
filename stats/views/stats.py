@@ -82,3 +82,19 @@ def period(tag):
         data['data'] = p.assemble_data()
 
     return render_template('stats/period.html', data=data)
+
+
+@bp_stats.route('/funnel/<tag>', methods=['GET', 'POST'])
+def funnel(tag):
+    from ..models.funnel import FunnelItem
+    f = FunnelItem(tag)
+    data = {
+        'title': f.title,
+        'route': f.route,
+        'author': f.author['author'],
+        'email': f.author['email'],
+    }
+    if request.method == 'POST':
+        data['data'] = f.get_funnel_result()
+
+    return render_template('stats/funnel.html', data=data)
