@@ -1,4 +1,10 @@
 {% extends "layout.html" %}
+{% block head %}
+<script src="{{ url_for('static', filename='js/vendor/xlsx.core.min.js')}}"></script>
+<script src="{{ url_for('static', filename='js/vendor/Blob.js')}}"></script>
+<script src="{{ url_for('static', filename='js/vendor/FileSaver.min.js')}}"></script>
+<script src="{{ url_for('static', filename='js/vendor/tableexport.min.js')}}"></script>
+{% endblock %}
 {% block content %} 
 {% if data %}
 {% filter markdown %}

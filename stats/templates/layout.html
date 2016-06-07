@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    {% block head %}{% endblock %}
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,6 +13,7 @@
     <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
     <script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js')}}"></script>
     <link rel="shortcut icon" href="{{ url_for("static", filename="img/favicon.ico") }}">
+    {% block head %}{% endblock %}
     <title>{% block title %}{% endblock %} - By Larry</title>
   </head>
   <body>

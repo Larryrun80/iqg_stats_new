@@ -5,7 +5,7 @@
 {% if data and data['columns'] and data['rows'] %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pagidation.css') }}">
 {{ pagination.info }}
-<table class="table table-hover">
+<table class="table table-hover" id='querytable'>
 <thead>
     <tr>
         {% for col in data['columns'] %}
@@ -27,5 +27,17 @@
 {% else %}
 No Data Found
 {% endif %}
-
+<script>
+$("#querytable").tableExport({
+    headings: true,                    // (Boolean), display table headings (th/td elements) in the <thead>
+    footers: false,                     // (Boolean), display table footers (th/td elements) in the <tfoot>
+    formats: ["xlsx", "xls", "csv", "txt"],    // (String[]), filetypes for the export
+    fileName: "query",                    // (id, String), filename for the downloaded file
+    bootstrap: true,                   // (Boolean), style buttons using bootstrap
+    position: "bottom",                 // (top, bottom), position of the caption element relative to table
+    ignoreRows: null,                  // (Number, Number[]), row indices to exclude from the exported file
+    ignoreCols: null,                   // (Number, Number[]), column indices to exclude from the exported file
+    ignoreCSS: ".tableexport-ignore"   // (selector, selector[]), selector(s) to exclude from the exported file
+});
+</script>
 {% endblock %}
