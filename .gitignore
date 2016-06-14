@@ -5,6 +5,9 @@
 # Parameters
 instance/
 
+# Private project files
+stats/items/
+
 # Assets and user uploads
 
 # Backup files
