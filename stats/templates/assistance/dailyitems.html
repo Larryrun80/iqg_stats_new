@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block title %} daily items {% endblock %}
+{% block content %} 
+  {% if data %}
+
+    商品数: {{ data['info'] }}
+    <br />
+    {% if data['online'] %}
+      上线商品：<br />
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>商户id</th>
+            <th>商户名</th>
+            <th>商品id</th>
+            <th>商户名</th>
+          </tr>
+        </thead>
+        {% for item in data['online'] %}
+        <tbody>
+          <tr>
+            <td>{{ item['merchant_id'] }}</td>
+            <td>{{ item['merchant'] }}</td>
+            <td>{{ item['item_id'] }}</td>
+            <td>{{ item['item_name'] }}</td>
+          </tr>
+        </tbody>
+        {% endfor %}
+      </table>
+    {% endif %}
+
+    <br />
+    {% if data['offline'] %}
+      下线商品：<br />
+      <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>商户id</th>
+          <th>商户名</th>
+          <th>商品id</th>
+          <th>商户名</th>
+        </tr>
+      </thead>
+        {% for item in data['offline'] %}
+      <tbody>
+          <tr>
+            <td>{{ item['merchant_id'] }}</td>
+            <td>{{ item['merchant'] }}</td>
+            <td>{{ item['item_id'] }}</td>
+            <td>{{ item['item_name'] }}</td>
+          </tr>
+      </tbody>
+        {% endfor %}
+      </table>
+    {% endif %}
+  {% endif %}
+{% endblock %}

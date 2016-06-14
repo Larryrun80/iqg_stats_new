@@ -80,10 +80,12 @@ def on_identity_loaded(sender, identity):
 from .views.home import home
 from .views.user import bp_user
 from .views.stats import bp_stats
+from .views.assistance import bp_ass
 
 app.register_blueprint(home)
 app.register_blueprint(bp_user, url_prefix='/account')
 app.register_blueprint(bp_stats, url_prefix='/data')
+app.register_blueprint(bp_ass, url_prefix='/assistance')
 
 # error page
 @app.errorhandler(404)

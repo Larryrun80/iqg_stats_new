@@ -97,3 +97,36 @@ class StatsBase(object):
 
         cnx.close()
         return result
+
+    def get_mongo_result(self, source, code):
+        '''Get mongo result
+           Load data from mongo and return, using find clause
+
+        arguments:
+        source -- a string corresponding to tag in config, string
+        code -- a mongo statement using 'find' clause, like:
+                [database].[collection].find({...})
+        '''
+
+        cnx = init_mongo(source)
+        codes = code.split('.')
+        if len(codes) < 3:
+            raise AppError('WRONG_CODE', code=code)
+        collection = cnx[codes[0]][codes[1]]  # get mongo collection
+        # get condition from code and jsonlize it
+        # step 1. find condition words
+        condition_pattern = r'find\({.*\}\)'
+        # start positon of find clause
+        condition = re.findall(condition_pattern, code)
+        if condition:
+            condition = condition[0][5:-1]
+            condition = json.loads(condition)
+            cursor = collection.find(condition)
+            result = []
+            for document in cursor:
+                result.append(document)
+        else:
+            raise AppError('INVALID_QUERY', query=code)
+
+        cnx.close()
+        return result
