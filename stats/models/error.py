@@ -21,6 +21,8 @@ class AppError(Exception):
                       'file {file} not found')
     WRONG_CODE = (120002,
                   'this is not a valid code: {code}')
+    NO_DATA = (120003,
+               'no data found')
 
     # User
     NO_USER = (200000,

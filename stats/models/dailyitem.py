@@ -18,7 +18,9 @@ class DailyItemCollector(StatsBase):
             + date.format('YYYY-MM-DD') \
             + '"})'
 
-        result = self.get_mongo_result('iqg_mongo', code)[0]
+        result = self.get_mongo_result('iqg_mongo', code)
+        if result:
+            result = result[0]
         return result
 
     def get_diff(self, date=None):
@@ -28,6 +30,9 @@ class DailyItemCollector(StatsBase):
 
         after = self.get_items(date)
         before = self.get_items(before_date)
+
+        if not after or not before:
+            raise self.AppError('NO_DATA')
 
         after_ids = [i['item_id'] for i in after['item_data']]
         before_ids = [i['item_id'] for i in before['item_data']]
