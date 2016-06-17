@@ -17,3 +17,6 @@ instance/
 logs/
 */logs/
 */*.log
+
+# Distribution files
+distribute/
