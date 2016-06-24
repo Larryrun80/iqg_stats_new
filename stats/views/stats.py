@@ -37,13 +37,16 @@ def query(tag):
     data['columns'] = q.columns
 
     # pagination
-    p = Pagination(page=current_page,
-                   total=total,
-                   per_page=page_size,
-                   record_name='users',
-                   bs_version=3)
+    if total:
+        p = Pagination(page=current_page,
+                       total=total,
+                       per_page=page_size,
+                       record_name='users',
+                       bs_version=3)
 
-    return render_template('stats/query.html', data=data, pagination=p)
+        return render_template('stats/query.html', data=data, pagination=p)
+    else:
+        return render_template('stats/query.html', data=data)
 
 
 @bp_stats.route('/line/<tag>', methods=['GET', 'POST'])
@@ -98,3 +101,13 @@ def funnel(tag):
         data['data'] = f.get_funnel_result()
 
     return render_template('stats/funnel.html', data=data)
+
+
+@bp_stats.route('/cf', methods=['GET', 'POST'])
+def channel_funnel():
+    data = None
+
+    if request.method == 'POST':
+        flash(request.form)
+    return render_template('stats/derivative/channel_funnel.html',
+                           data=data)

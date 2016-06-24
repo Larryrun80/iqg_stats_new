@@ -4,7 +4,9 @@
 
 {% if data and data['columns'] and data['rows'] %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pagidation.css') }}">
-{{ pagination.info }}
+{% if pagination %}
+  {{ pagination.info }}
+{% endif %}
 <table class="table table-hover" id='querytable'>
 <thead>
     <tr>
@@ -23,7 +25,9 @@
 {% endfor %}
 </tbody>
 </table>
-{{ pagination.links }}
+{% if pagination %}
+  {{ pagination.links }}
+{% endif %}
 {% else %}
 No Data Found
 {% endif %}
