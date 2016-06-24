@@ -6,10 +6,11 @@ from .stats_base import StatsBase
 
 
 class FunnelItem(StatsBase):
-    def __init__(self, name):
-        funnel_path = '{dir}/{file}'.format(
-            dir=self.basedir,
-            file=self.app_configs['FUNNEL_PATH'])
+    def __init__(self, name, funnel_path=None):
+        if not funnel_path:
+            funnel_path = '{dir}/{file}'.format(
+                dir=self.basedir,
+                file=self.app_configs['FUNNEL_PATH'])
         self.attrs += ['conversion', 'base_ids', 'funnel']
         self.ids = []
         for attr in self.attrs:
@@ -30,9 +31,12 @@ class FunnelItem(StatsBase):
     def get_base_ids(self):
         if self.base_ids['source'] and self.base_ids['ids']:
             if self.base_ids['source'] == 'list':
-                if isinstance(self.base_ids['ids'], list):
-                    for uid in self.base_ids['ids']:
-                        self.ids.append(str(uid))
+                if not isinstance(self.base_ids['ids'], list):
+                    raise self.AppError('TYPE_ERROR',
+                                        param=self.base_ids['ids'],
+                                        expect_type='list')
+                for uid in self.base_ids['ids']:
+                    self.ids.append(str(uid))
             else:
                 data = self.get_data(self.base_ids['source'],
                                      self.base_ids['ids'])
@@ -51,7 +55,6 @@ class FunnelItem(StatsBase):
                 'value': self.get_value(item)
             }
             funnel.append(f_item)
-
         # count conversion
         if self.conversion:
             base_count = None
@@ -65,6 +68,12 @@ class FunnelItem(StatsBase):
         return funnel
 
     def get_value(self, item):
+        if item['source'] == 'list':
+            if not isinstance(item['code'], list):
+                raise self.AppError('TYPE_ERROR', param=item['code'],
+                                    expect_type='list')
+            return len(item['code'])
+
         if '{ids}' in item['code']:
             if not self.ids:
                 raise self.AppError('NO_BASE_ID', itemid=item['id'])

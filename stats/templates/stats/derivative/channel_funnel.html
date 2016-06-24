@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 {% block title %} channel {% endblock %}
 {% block content %} 
-    <div>
+    <div class="col-md-8">
       <ul class="nav nav-tabs nav-justified" role="tablist" id="myTabs">
-        <li role="presentation"><a href="#Userid" aria-controls="Userid" role="tab" data-toggle="tab">根据用户id查询</a></li>
-        <li role="presentation"><a href="#Mobile" aria-controls="Mobile" role="tab" data-toggle="tab">根据手机号查询</a></li>
+        <li role="presentation"><a href="#userid" aria-controls="userid" role="tab" data-toggle="tab">根据用户id查询</a></li>
+        <li role="presentation"><a href="#mobile" aria-controls="mobile" role="tab" data-toggle="tab">根据手机号查询</a></li>
         <li role="presentation"><a href="#Coupon" aria-controls="Coupon" role="tab" data-toggle="tab">根据券查询</a></li>
       </ul>
 
@@ -12,11 +12,11 @@
 
       <!-- Tab panes -->
       <div class="tab-content">
-        <div role="tabpanel" class="tab-pane" id="Userid">`
+        <div role="tabpanel" class="tab-pane" id="userid">
             <form action="{{ url_for('stats.channel_funnel') }}" method=post>
                 <div class="form-group">
                     <input type="hidden" name="channel_type" value="userid"/>
-                    <textarea id="channel_value" name="channel_value" rows=10 class="form-control" placeholder="在此输入用户id">{% if data and data['source'] and data['tab'] and data['tab'] == 'Userid' %}{{ data['source'] }}{% endif %}</textarea>
+                    <textarea id="channel_value" name="channel_value" rows=10 class="form-control" placeholder="在此输入用户id">{% if data and data['source'] and data['tab'] and data['tab'] == 'userid' %}{{ data['source'] }}{% endif %}</textarea>
                     <span id="helpBlock" class="help-block">在上面的文本框中输入需要查询的用户id，id之间可以用空格，逗号，或回车分格，请留意一次不要输入过多的（小于10000个）id</span>
                 </div>
                 <button type="submit" class="btn btn-success btn-block">查询</button>
@@ -55,11 +55,11 @@
           </form>
         </div>
 
-        <div role="tabpanel" class="tab-pane" id="Mobile">
-            <form action="{{ url_for('stats.channel_funnel') }}?type=Mobile" method=post>
+        <div role="tabpanel" class="tab-pane" id="mobile">
+            <form action="{{ url_for('stats.channel_funnel') }}" method=post>
                 <input type="hidden" name="channel_type" value="mobile"/>
                 <div class="form-group">
-                    <textarea id="input_Mobile" name="input_Mobile" rows=10 class="form-control" placeholder="在此输入手机号">{% if data and data['source'] and data['tab'] and data['tab'] == 'Mobile' %}{{ data['source'] }}{% endif %}</textarea>
+                    <textarea id="channel_value" name="channel_value" rows=10 class="form-control" placeholder="在此输入手机号">{% if data and data['source'] and data['tab'] and data['tab'] == 'mobile' %}{{ data['source'] }}{% endif %}</textarea>
                     <span id="helpBlock" class="help-block">在上面的文本框中输入需要查询的手机号，手机号之间可以用空格，逗号，或回车分格，请留意一次不要输入过多的（小于10000个）手机号</span>
                 </div>
                 <button type="submit" class="btn btn-success btn-block">查询</button>
@@ -71,7 +71,7 @@
         {% if data and data['result'] %}
         <div>
             <table  class="table table-hover">
-                <tr><th>#</th><th>项目</th><th>结果</th><th>操作</th></tr>
+                <tr><th>#</th><th>项目</th><th>结果</th></tr>
                 {% for section in data['result'] %}
                 <tr>
                     <td>{{ loop.index0 }}</td>
@@ -97,7 +97,7 @@
         $('#input_Coupon').attr('value', $(this).data("id"));
       });
 
-      var tabhref = "#Userid"
+      var tabhref = "#userid"
       {% if data and data['tab'] %}
           tabhref = "#{{ data['tab'] }}"
       {% endif %}
