@@ -108,6 +108,11 @@ def channel_funnel():
     data = None
 
     if request.method == 'POST':
-        flash(request.form)
+        from ..models.derivative.channelfunnel import ChannelFunnel
+        cf = ChannelFunnel()
+        ctype = request.form['channel_type']
+        raw_data = request.form['channel_value']
+        dealed = cf.get_post_value(ctype, raw_data)
+        flash(dealed)
     return render_template('stats/derivative/channel_funnel.html',
                            data=data)

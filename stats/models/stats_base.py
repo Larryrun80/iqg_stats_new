@@ -4,10 +4,13 @@ import re
 from .error import AppError
 from .mysql import init_mysql
 from .mongo import init_mongo
+from .. import app
 
 
 class StatsBase(object):
     AppError = AppError
+    app_configs = app.config
+    basedir = app.basedir
     attrs = ['title', 'route', 'author', 'access']
 
     def __init__(self, **params):
@@ -130,3 +133,20 @@ class StatsBase(object):
 
         cnx.close()
         return result
+
+    def get_data_count(self, source, code):
+        if source in app.config['MYSQL_SOURCES']:
+            return self.get_mysql_result_count(source, code)
+        elif source in app.config['MONGO_SOURCES']:
+            return self.get_mongo_result_count(source, code)
+        else:
+            raise AppError('DB_TAG_ERROR', tag=source)
+
+    def get_data(self, source, code):
+        print(app.config)
+        if source in app.config['MYSQL_SOURCES']:
+            return self.get_mysql_result(source, code)
+        elif source in app.config['MONGO_SOURCES']:
+            return self.get_mongo_result(source, code)
+        else:
+            raise AppError('DB_TAG_ERROR', tag=source)
