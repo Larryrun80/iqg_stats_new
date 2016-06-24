@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+{% block title %} channel {% endblock %}
+{% block content %} 
+    <div>
+      <ul class="nav nav-tabs nav-justified" role="tablist" id="myTabs">
+        <li role="presentation"><a href="#Userid" aria-controls="Userid" role="tab" data-toggle="tab">根据用户id查询</a></li>
+        <li role="presentation"><a href="#Mobile" aria-controls="Mobile" role="tab" data-toggle="tab">根据手机号查询</a></li>
+        <li role="presentation"><a href="#Coupon" aria-controls="Coupon" role="tab" data-toggle="tab">根据券查询</a></li>
+      </ul>
+
+      <div class="clearfix" style="margin-bottom: 30px;"></div>
+
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane" id="Userid">`
+            <form action="{{ url_for('stats.channel_funnel') }}" method=post>
+                <div class="form-group">
+                    <input type="hidden" name="channel_type" value="userid"/>
+                    <textarea id="channel_value" name="channel_value" rows=10 class="form-control" placeholder="在此输入用户id">{% if data and data['source'] and data['tab'] and data['tab'] == 'Userid' %}{{ data['source'] }}{% endif %}</textarea>
+                    <span id="helpBlock" class="help-block">在上面的文本框中输入需要查询的用户id，id之间可以用空格，逗号，或回车分格，请留意一次不要输入过多的（小于10000个）id</span>
+                </div>
+                <button type="submit" class="btn btn-success btn-block">查询</button>
+            </form>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="Coupon">
+           <form action="{{ url_for('stats.channel_funnel') }}?type=Coupon" method=post>
+              <input type="hidden" name="channel_type" value="coupon"/>
+              <div class="form-group">
+                  <input id="input_Coupon" name="input_Coupon" type="hidden" class="form-control" placeholder="batch id" value="{% if data and data['source'] and data['tab'] and data['tab'] == 'Coupon' %}{{ data['source'] }}{% endif %}" visiable="false">
+                  <span class="help-block">请使用下拉框选择卡券</span>
+
+                  <div class="row">
+                  <div class="col-md-12">
+                    <div class="dropdown">
+                      <button class="btn btn-info btn-block dropdown-toggle" type="button" id="dropdown_coupon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        选择卡券
+                        <span class="caret"></span>
+                      </button>
+                      <ul id="ul_coupon" class="dropdown-menu" aria-labelledby="dropdown_coupon">
+                        {% if data['coupon_info'] %}
+                          {% for coupon in data['coupon_info'] %}
+                              <li><a id="coupon_{{ coupon['id'] }}" data-id="{{ coupon['id'] }}" href="###">{{ coupon['name'] }}</a></li>
+                          {% endfor %}
+                        {% endif %}
+                      </ul>
+                    </div>
+                    </div>
+
+                  </div>
+
+                <div class="clearfix" style="margin-bottom: 20px;"></div>
+                <button type="submit" id="coupon_submit" class="btn btn-success btn-block">查询</button>
+              </div>
+          </form>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="Mobile">
+            <form action="{{ url_for('stats.channel_funnel') }}?type=Mobile" method=post>
+                <input type="hidden" name="channel_type" value="mobile"/>
+                <div class="form-group">
+                    <textarea id="input_Mobile" name="input_Mobile" rows=10 class="form-control" placeholder="在此输入手机号">{% if data and data['source'] and data['tab'] and data['tab'] == 'Mobile' %}{{ data['source'] }}{% endif %}</textarea>
+                    <span id="helpBlock" class="help-block">在上面的文本框中输入需要查询的手机号，手机号之间可以用空格，逗号，或回车分格，请留意一次不要输入过多的（小于10000个）手机号</span>
+                </div>
+                <button type="submit" class="btn btn-success btn-block">查询</button>
+            </form>
+        </div>
+
+        <div class="clearfix" style="margin-bottom: 20px;"></div>
+
+        {% if data and data['result'] %}
+        <div>
+            <table  class="table table-hover">
+                <tr><th>#</th><th>项目</th><th>结果</th><th>操作</th></tr>
+                {% for section in data['result'] %}
+                <tr>
+                    <td>{{ loop.index0 }}</td>
+                    <td>{{ section["name"]|safe }}</td>
+                    <td>{{ section["value"] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+      <script type="text/javascript">
+      $('#myTabs a').click(function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+      });
+
+      $('#ul_coupon a').click(function(e) {
+        e.preventDefault()
+        $('#dropdown_coupon').html($(this).text()+' &nbsp;<span class="caret"></span>');
+        $('#input_Coupon').attr('value', $(this).data("id"));
+      });
+
+      var tabhref = "#Userid"
+      {% if data and data['tab'] %}
+          tabhref = "#{{ data['tab'] }}"
+      {% endif %}
+      $('#myTabs a[href="' + tabhref + '"]').tab('show')
+
+      {% if data and data['tab'] and data['tab'] == 'Coupon' %}
+        {% for coupon in data['coupon_info'] %}
+          {% if coupon['id'] == data['source']|int() %}
+            $('#dropdown_coupon').html("{{ coupon['name'] }}" +' &nbsp;<span class="caret"></span>');
+            $('#input_Coupon').attr('value', {{ coupon['id'] }});
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      </script>
+{% endblock %}

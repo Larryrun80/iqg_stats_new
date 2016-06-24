@@ -20,3 +20,9 @@ stats/items/
 logs/
 */logs/
 */*.log
+
+# Distribution files
+distribute/
+
+# Config fils
+stats/items
