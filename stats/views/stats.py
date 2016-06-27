@@ -24,12 +24,16 @@ def query(tag):
     }
 
     current_page = request.args.get('page', 1)
+    if q.count:
+        page_size = request.args.get('pagesize', 20)
+    else:
+        page_size = 0
     try:
         current_page = int(current_page)
+        page_size = int(page_size)
     except:
-        flash('page is not int')
+        flash('page or pagesize is not int')
         return render_template('stats/query.html')
-    page_size = 20
     total = q.get_result_count()
 
     data['rows'] = q.get_result(page_size=page_size,
@@ -71,7 +75,6 @@ def line(tag):
 def period(tag):
     from ..models.periodic import PeriodicItem
     p = PeriodicItem(tag)
-    print(p)
     data = {
         'title': p.title,
         'route': p.route,
@@ -98,3 +101,22 @@ def funnel(tag):
         data['data'] = f.get_funnel_result()
 
     return render_template('stats/funnel.html', data=data)
+
+
+@bp_stats.route('/cf', methods=['GET', 'POST'])
+def channel_funnel():
+    from ..models.derivative.channelfunnel import ChannelFunnel
+    cf = ChannelFunnel()
+    data = {
+        'coupon_info': cf.get_coupons()
+    }
+    if request.method == 'POST':
+        cf.update_source(request.form['channel_type'],
+                         request.form['channel_value'])
+        result = cf.get_funnel_result()
+        data['tab'] = request.form['channel_type']
+        data['source'] = request.form['channel_value']
+        data['result'] = result
+
+    return render_template('stats/derivative/channel_funnel.html',
+                           data=data)
