@@ -5,7 +5,7 @@
       <ul class="nav nav-tabs nav-justified" role="tablist" id="myTabs">
         <li role="presentation"><a href="#userid" aria-controls="userid" role="tab" data-toggle="tab">根据用户id查询</a></li>
         <li role="presentation"><a href="#mobile" aria-controls="mobile" role="tab" data-toggle="tab">根据手机号查询</a></li>
-        <li role="presentation"><a href="#Coupon" aria-controls="Coupon" role="tab" data-toggle="tab">根据券查询</a></li>
+        <li role="presentation"><a href="#coupon" aria-controls="coupon" role="tab" data-toggle="tab">根据券查询</a></li>
       </ul>
 
       <div class="clearfix" style="margin-bottom: 30px;"></div>
@@ -23,11 +23,12 @@
             </form>
         </div>
 
-        <div role="tabpanel" class="tab-pane" id="Coupon">
-           <form action="{{ url_for('stats.channel_funnel') }}?type=Coupon" method=post>
+        <div role="tabpanel" class="tab-pane" id="coupon">
+           <form action="{{ url_for('stats.channel_funnel') }}" method=post>
               <input type="hidden" name="channel_type" value="coupon"/>
               <div class="form-group">
-                  <input id="input_Coupon" name="input_Coupon" type="hidden" class="form-control" placeholder="batch id" value="{% if data and data['source'] and data['tab'] and data['tab'] == 'Coupon' %}{{ data['source'] }}{% endif %}" visiable="false">
+                  <input type="hidden" name="channel_type" value="coupon"/>
+                  <input id="channel_value" name="channel_value" type="hidden" class="form-control" placeholder="batch id" value="{% if data and data['source'] and data['tab'] and data['tab'] == 'coupon' %}{{ data['source'] }}{% endif %}" visiable="false">
                   <span class="help-block">请使用下拉框选择卡券</span>
 
                   <div class="row">
@@ -94,7 +95,7 @@
       $('#ul_coupon a').click(function(e) {
         e.preventDefault()
         $('#dropdown_coupon').html($(this).text()+' &nbsp;<span class="caret"></span>');
-        $('#input_Coupon').attr('value', $(this).data("id"));
+        $('#coupon #channel_value').attr('value', $(this).data("id"));
       });
 
       var tabhref = "#userid"
@@ -103,11 +104,11 @@
       {% endif %}
       $('#myTabs a[href="' + tabhref + '"]').tab('show')
 
-      {% if data and data['tab'] and data['tab'] == 'Coupon' %}
+      {% if data and data['tab'] and data['tab'] == 'coupon' %}
         {% for coupon in data['coupon_info'] %}
           {% if coupon['id'] == data['source']|int() %}
             $('#dropdown_coupon').html("{{ coupon['name'] }}" +' &nbsp;<span class="caret"></span>');
-            $('#input_Coupon').attr('value', {{ coupon['id'] }});
+            $('#coupon #channel_value').attr('value', {{ coupon['id'] }});
           {% endif %}
         {% endfor %}
       {% endif %}
