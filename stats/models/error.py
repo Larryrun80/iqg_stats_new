@@ -10,6 +10,8 @@ class AppError(Exception):
                     'format error found in {param}')
     TYPE_ERROR = (100002,
                   'type error found, "{param}" should be "{expect_type}"')
+    DB_TAG_ERROR = (100003,
+                    'data source error, {tag}')
 
     CLASS_PARAM_MISSING = (110000,
                            'need param "{param}" to init class, but not found')
@@ -40,10 +42,13 @@ class AppError(Exception):
     NO_X_AXIS = (400001,
                  'x_axis is not defined correctly')
 
+    # Funnel
+    NO_BASE_ID = (500001,
+                  'no base ids found when dealing id {itemid}')
+
     # DATABASE
     INVALID_QUERY = (900001,
                      'not a valid query: {query}')
-
 
     def __init__(self, name, **kargs):
         if name not in dir(self):
