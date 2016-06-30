@@ -1,4 +1,8 @@
-from flask import Blueprint, render_template
+from flask import (Blueprint,
+                   render_template,
+                   request,
+                   jsonify,
+                   url_for)
 
 home = Blueprint('home', __name__)
 
@@ -11,3 +15,13 @@ def index():
 @home.route('/test')
 def test():
     return render_template('test.html')
+
+
+@home.route('/export', methods=['POST'])
+def export():
+    from ..models.export import ExportData
+    ed = ExportData(request.form['file_type'], request.form['data'])
+    result = ed.get_file()
+    if result['message'] == 'success':
+        result['url'] = url_for('static', filename=result['url'])
+    return jsonify(result)

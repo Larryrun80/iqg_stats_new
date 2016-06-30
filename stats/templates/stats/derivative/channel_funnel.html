@@ -72,12 +72,25 @@
         {% if data and data['result'] %}
         <div>
             <table  class="table table-hover">
-                <tr><th>#</th><th>项目</th><th>结果</th></tr>
+                <tr><th>#</th><th>项目</th><th>结果</th><th>操作</th></tr>
                 {% for section in data['result'] %}
                 <tr>
                     <td>{{ loop.index0 }}</td>
                     <td>{{ section["name"]|safe }}</td>
                     <td>{{ section["value"] }}</td>
+                    <td>
+                    {% if section["export"] %}
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-success btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          导出明细数据 <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li><a class="download" data-req='{{ section["export"] }}' data-format="csv" href="###">csv格式</a></li>
+                          <li><a class="download" data-req='{{ section["export"] }}' data-format="xls" href="###">excel格式</a></li>
+                        </ul>
+                      </div>
+                      {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
@@ -112,5 +125,25 @@
           {% endif %}
         {% endfor %}
       {% endif %}
+
+      var url_export = "{{ url_for('home.export') }}"
+      $(".download").click(function(){
+        var data_dl = '{{ data["ids"] }}'
+        if($(this).data('type') == 'illegal'){
+            data_dl = $(this).data('illegal')
+        }
+        $.post( url_export,
+                {
+                  'file_type': $(this).data('format'),
+                  'data': $(this).data('req')
+                },
+                function(data) {
+                  if (!data.message=='success')
+                    alert(data.message)
+                  else {
+                    window.location.href = data.url
+                  }
+                }, "json");
+        });
       </script>
 {% endblock %}

@@ -3,6 +3,7 @@ import os
 import yaml
 
 from .stats_base import StatsBase
+from ..utils.security import ts
 
 
 class FunnelItem(StatsBase):
@@ -52,8 +53,16 @@ class FunnelItem(StatsBase):
             f_item = {
                 'id': item['id'],
                 'name': item['name'],
-                'value': self.get_value(item)
+                'value': self.get_value(item),
+                'export': '',
             }
+            if 'type' in item.keys() and item['type'] == 'items':
+                export = {
+                    'code': item['code'],
+                    'source': item['source']
+                }
+                f_item['export'] = ts.dumps(export,
+                                            salt=self.app_configs['CODE_SALT'])
             funnel.append(f_item)
         # count conversion
         if self.conversion:
@@ -80,5 +89,8 @@ class FunnelItem(StatsBase):
             item['code'] = item['code'].replace(
                 '{ids}', '({})'.format(', '.join(self.ids)))
 
-        value = self.get_data_count(item['source'], item['code'])
+        if 'type' in item.keys() and item['type'] == 'items':
+            value = len(self.get_data(item['source'], item['code'])['data'])
+        else:
+            value = self.get_data_count(item['source'], item['code'])
         return value

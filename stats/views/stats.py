@@ -117,6 +117,5 @@ def channel_funnel():
         data['tab'] = request.form['channel_type']
         data['source'] = request.form['channel_value']
         data['result'] = result
-
     return render_template('stats/derivative/channel_funnel.html',
                            data=data)

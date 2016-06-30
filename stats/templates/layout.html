@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/bootstrap.min.css') }}">
     <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
     <script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js')}}"></script>
-    <link rel="shortcut icon" href="{{ url_for("static", filename="img/favicon.ico") }}">
+    <link rel="shortcut icon" href='{{ url_for("static", filename="img/favicon.ico") }}'>
     {% block head %}{% endblock %}
     <title>{% block title %}{% endblock %} - By Larry</title>
   </head>
