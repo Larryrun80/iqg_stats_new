@@ -84,11 +84,11 @@ class FunnelItem(StatsBase):
         if '{ids}' in item['code']:
             if not self.ids:
                 raise self.AppError('NO_BASE_ID', itemid=item['id'])
-            exec_code = item['code'].replace(
+            item['code'] = item['code'].replace(
                 '{ids}', '({})'.format(', '.join(self.ids)))
 
         if 'type' in item.keys() and item['type'] == 'items':
-            value = len(self.get_data(item['source'], exec_code)['data'])
+            value = len(self.get_data(item['source'], item['code'])['data'])
         else:
-            value = self.get_data_count(item['source'], exec_code)
+            value = self.get_data_count(item['source'], item['code'])
         return value
