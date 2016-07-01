@@ -1,9 +1,9 @@
 import csv
 import os
-import random
 
 import arrow
 import xlwt
+import yaml
 
 from .stats_base import StatsBase
 from ..utils.security import ts
@@ -15,23 +15,47 @@ class ExportData(StatsBase):
         'message': ''
     }
 
-    def __init__(self, file_type, code):
+    def __init__(self, file_type, cid):
         self.file_type = file_type
-        self.code = code
+        self.cid = cid
 
     def get_file(self):
-        try:
-            req = ts.loads(self.code,
-                           salt=self.app_configs['CODE_SALT'],
-                           max_age=3600)
-        except:
-            self.result['message'] = '文件已超时，请刷新重试'
-            return self.result
+        export_path = self.app_configs['EXPORT_CMD_PATH']
+        real_path = '{}/{}'.format(self.basedir, export_path)
+        yaml_in_time = []
 
-        data = self.get_data(req['source'], req['code'])
-        data = [list(data['columns'])] + list(data['data'])
-        self.result['url'] = self.generate_file(data)
-        self.result['message'] = 'success'
+        with open(real_path, encoding='utf-8') as f:
+            yaml_data = list(yaml.load(f))
+
+        timeouted = arrow.now().timestamp - 3600
+        # del timeouted items
+        for item in yaml_data:
+            if item['time'] >= timeouted:
+                yaml_in_time.append(item)
+
+        with open(real_path, mode='w', encoding='utf-8') as f:
+            if yaml_in_time:
+                f.write(yaml.dump(yaml_in_time))
+            else:
+                pass
+
+        for item in yaml_in_time:
+            if item['cid'] == self.cid:
+                try:
+                    source = item['source']
+                    code = ts.loads(item['code'],
+                                    salt=self.app_configs['CODE_SALT'])
+                except:
+                    self.result['message'] = '文件不存在或超时，请重试'
+                    return self.result
+
+                data = self.get_data(source, code)
+                data = [list(data['columns'])] + list(data['data'])
+                self.result['url'] = self.generate_file(data)
+                self.result['message'] = 'success'
+                return self.result
+
+        self.result['message'] = '文件不存在或超时，请重试'
         return self.result
 
     def generate_file(self, data, export_dir=''):

@@ -25,6 +25,8 @@ class AppError(Exception):
                   'this is not a valid code: {code}')
     NO_DATA = (120003,
                'no data found')
+    NO_DIR = (120004,
+              'no dir found: {dir}')
 
     # User
     NO_USER = (200000,

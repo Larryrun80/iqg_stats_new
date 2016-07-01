@@ -119,3 +119,21 @@ def channel_funnel():
         data['result'] = result
     return render_template('stats/derivative/channel_funnel.html',
                            data=data)
+
+
+@bp_stats.route('/gf', methods=['GET', 'POST'])
+def growth_funnel():
+    from ..models.derivative.growthfunnel import GrowthFunnel
+    gf = GrowthFunnel()
+    data = {
+        'coupon_info': gf.get_coupons()
+    }
+    if request.method == 'POST':
+        gf.update_source(request.form['channel_type'],
+                         request.form['channel_value'])
+        result = gf.get_funnel_result()
+        data['tab'] = request.form['channel_type']
+        data['source'] = request.form['channel_value']
+        data['result'] = result
+    return render_template('stats/derivative/growth_funnel.html',
+                           data=data)

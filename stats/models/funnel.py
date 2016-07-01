@@ -58,12 +58,9 @@ class FunnelItem(StatsBase):
                 'export': '',
             }
             if 'type' in item.keys() and item['type'] == 'items':
-                export = {
-                    'code': item['code'],
-                    'source': item['source']
-                }
-                tsed = ts.dumps(export, salt=self.app_configs['CODE_SALT'])
-                f_item['export'] = zlib.compress(tsed.encode(), 9)
+                f_item['export'] = self.get_export_cid(
+                    item['source'],
+                    ts.dumps(item['code'], salt=self.app_configs['CODE_SALT']))
             funnel.append(f_item)
         # count conversion
         if self.conversion:

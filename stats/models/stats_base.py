@@ -1,10 +1,15 @@
 import json
+import os
 import re
+
+import arrow
+import yaml
 
 from .error import AppError
 from .mysql import init_mysql
 from .mongo import init_mongo
 from .. import app
+from ..utils.security import generate_random_str
 
 
 class StatsBase(object):
@@ -148,3 +153,39 @@ class StatsBase(object):
             return self.get_mongo_result(source, code)
         else:
             raise AppError('DB_TAG_ERROR', tag=source)
+
+    def get_export_cid(self, source, code):
+        export_path = self.app_configs['EXPORT_CMD_PATH']
+        real_path = '{}/{}'.format(self.basedir, export_path)
+        exist_cids = []
+
+        # check dir
+        if not os.path.isdir(os.path.dirname(real_path)):
+            raise self.AppError('NO_DIR', dir=os.path.dirname(real_path))
+
+        if os.path.isfile(real_path):
+            with open(real_path, encoding='utf-8') as f:
+                yaml_data = yaml.load(f)
+
+            if yaml_data:
+                for item in yaml_data:
+                    exist_cids.append(item['cid'])
+        else:
+            with open(real_path, mode='w', encoding='utf-8') as f:
+                pass
+
+        cid = generate_random_str(18)
+        while cid in exist_cids:
+            cid = generate_random_str(18)
+
+        to_export = [{
+            'cid': cid,
+            'code': code,
+            'time': arrow.now().timestamp,
+            'source': source,
+        }]
+
+        with open(real_path, mode='a', encoding='utf-8') as f:
+            f.write(yaml.dump(to_export))
+
+        return cid
