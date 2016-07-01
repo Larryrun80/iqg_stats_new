@@ -161,7 +161,7 @@ class StatsBase(object):
 
         # check dir
         if not os.path.isdir(os.path.dirname(real_path)):
-            raise self.AppError('NO_DIR', dir=os.path.dirname(real_path))
+            os.makedirs(os.path.dirname(real_path))
 
         if os.path.isfile(real_path):
             with open(real_path, encoding='utf-8') as f:
