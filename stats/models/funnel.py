@@ -1,4 +1,5 @@
 import os
+import zlib
 
 import yaml
 
@@ -61,8 +62,8 @@ class FunnelItem(StatsBase):
                     'code': item['code'],
                     'source': item['source']
                 }
-                f_item['export'] = ts.dumps(export,
-                                            salt=self.app_configs['CODE_SALT'])
+                tsed = ts.dumps(export, salt=self.app_configs['CODE_SALT'])
+                f_item['export'] = zlib.compress(tsed.encode(), 9)
             funnel.append(f_item)
         # count conversion
         if self.conversion:
@@ -86,11 +87,11 @@ class FunnelItem(StatsBase):
         if '{ids}' in item['code']:
             if not self.ids:
                 raise self.AppError('NO_BASE_ID', itemid=item['id'])
-            item['code'] = item['code'].replace(
+            exec_code = item['code'].replace(
                 '{ids}', '({})'.format(', '.join(self.ids)))
 
         if 'type' in item.keys() and item['type'] == 'items':
-            value = len(self.get_data(item['source'], item['code'])['data'])
+            value = len(self.get_data(item['source'], exec_code)['data'])
         else:
-            value = self.get_data_count(item['source'], item['code'])
+            value = self.get_data_count(item['source'], exec_code)
         return value
