@@ -1,6 +1,8 @@
 # Cache and logs
 *.pyc
 .DS_Store
+stats/tmp_files/*
+stats/static/tmp/*
 
 # Parameters
 instance/
