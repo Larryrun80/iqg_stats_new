@@ -1,5 +1,4 @@
 import os
-import zlib
 
 import yaml
 
@@ -48,6 +47,8 @@ class FunnelItem(StatsBase):
     def get_funnel_result(self):
         if not self.ids and self.base_ids['source']:
             self.get_base_ids()
+            if not self.ids:
+                return None
 
         funnel = []
         for item in self.funnel:

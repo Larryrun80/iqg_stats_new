@@ -114,9 +114,12 @@ def channel_funnel():
         cf.update_source(request.form['channel_type'],
                          request.form['channel_value'])
         result = cf.get_funnel_result()
-        data['tab'] = request.form['channel_type']
-        data['source'] = request.form['channel_value']
-        data['result'] = result
+        if result:
+            data['tab'] = request.form['channel_type']
+            data['source'] = request.form['channel_value']
+            data['result'] = result
+        else:
+            flash('当前查询没有找到任何用户')
     return render_template('stats/derivative/channel_funnel.html',
                            data=data)
 
@@ -132,8 +135,11 @@ def growth_funnel():
         gf.update_source(request.form['channel_type'],
                          request.form['channel_value'])
         result = gf.get_funnel_result()
-        data['tab'] = request.form['channel_type']
-        data['source'] = request.form['channel_value']
-        data['result'] = result
+        if result:
+            data['tab'] = request.form['channel_type']
+            data['source'] = request.form['channel_value']
+            data['result'] = result
+        else:
+            flash('当前查询没有找到任何用户')
     return render_template('stats/derivative/growth_funnel.html',
                            data=data)
