@@ -32,7 +32,7 @@ class QueryItem(StatsBase):
         if self.source in ('iqg_ro', 'hsq_ro'):
             exec_code = self.code
             if sort:
-                exec_code = 'select * from ({sql})t order by {sort}'.format(
+                exec_code = 'select * from ({sql})t order by "{sort}"'.format(
                     sql=self.code,
                     sort=sort)
 
