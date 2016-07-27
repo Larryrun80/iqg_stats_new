@@ -7,11 +7,12 @@
 {% if pagination.per_page > 0 %}
   {{ pagination.info }}
 {% endif %}
+<label hidden id="sort"></label>
 <table class="table table-hover" id='querytable'>
 <thead>
     <tr>
         {% for col in data['columns'] %}
-            <th>{{ col }}</th>
+            <th style="cursor:pointer" data-sort="{{ col }}" id="th_{{ col }}">{{ col }}</th>
         {% endfor %}
     </tr>
 </thead>
@@ -19,7 +20,7 @@
 {% for row in data['rows'] %}
     <tr>
         {% for col in row %}
-            <td> {{ col }} </td>
+            <td> <a href='#'>{{ col|safe }}</a> </td>
         {% endfor %}
     </tr>
 {% endfor %}
@@ -32,6 +33,31 @@
 No Data Found
 {% endif %}
 <script>
+$(document).ready(function(){
+    if (window.location.search){
+        var str = window.location.search;
+        var objURL = {};
+
+        str.replace(
+            new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+            function( $0, $1, $2, $3 ){
+                objURL[ $1 ] = $3;
+            }
+        );
+        if (objURL['sort']) {
+            $("#sort").text(decodeURIComponent(decodeURIComponent(objURL['sort'])))
+            sort_params = $("#sort").text().split('_')
+            th_id = 'th_' + sort_params[0]
+            th_origin = $("#" + th_id).text()
+            postfix = ' ↑'
+            if (sort_params[1] == 'd') {
+                postfix = ' ↓'
+            }
+            $("#" + th_id).text(th_origin + postfix)
+        }
+    }
+});
+
 $("#querytable").tableExport({
     headings: true,                    // (Boolean), display table headings (th/td elements) in the <thead>
     footers: false,                     // (Boolean), display table footers (th/td elements) in the <tfoot>
@@ -43,5 +69,28 @@ $("#querytable").tableExport({
     ignoreCols: null,                   // (Number, Number[]), column indices to exclude from the exported file
     ignoreCSS: ".tableexport-ignore"   // (selector, selector[]), selector(s) to exclude from the exported file
 });
+
+$("th").click(function() {
+    str = $(this).text()
+    if ($("#sort").text()) {
+        th_id = "th_" + $("#sort").text().split("_")[0]
+        th_text = $("#" + th_id).text()
+        $("#" + th_id).text(th_text.substr(0, th_text.length-2))
+    }
+    
+    if (str.match(" ↑$")) {
+        $(this).text(str.substr(0, str.length-2) + ' ↓')
+        $("#sort").text($(this).data('sort') + '_d')
+    }else if(str.match(" ↓$")) {
+        $(this).text(str.substr(0, str.length-2) + ' ↑')
+        $("#sort").text($(this).data('sort') + '_a')
+    }else {
+        $(this).text(str + ' ↑')
+        $("#sort").text($(this).data('sort') + '_a')
+    }
+
+    location.href=location.pathname + "?sort=" + encodeURIComponent(encodeURIComponent($("#sort").text()))
+});
+
 </script>
 {% endblock %}

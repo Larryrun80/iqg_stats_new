@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 from flask import (Blueprint,
                    render_template,
                    abort,
@@ -10,6 +12,16 @@ bp_stats = Blueprint('stats', __name__)
 
 @bp_stats.route('/query/<tag>')
 def query(tag):
+    sort_param = request.args.get('sort', None)
+    sort_words = None
+    if sort_param:
+        sort_params = sort_param.split('_')
+        sort_words = unquote(unquote(sort_params[0]))
+        if sort_params[1] == 'd':
+            sort_words += ' DESC'
+        elif sort_params[1] == 'a':
+            sort_words += ' ASC'
+
     from ..models.query import QueryItem
     q = QueryItem(tag)
     p = None
@@ -37,7 +49,8 @@ def query(tag):
     total = q.get_result_count()
 
     data['rows'] = q.get_result(page_size=page_size,
-                                current_page=current_page)
+                                current_page=current_page,
+                                sort=sort_words)
     data['columns'] = q.columns
 
     # pagination
@@ -114,9 +127,12 @@ def channel_funnel():
         cf.update_source(request.form['channel_type'],
                          request.form['channel_value'])
         result = cf.get_funnel_result()
-        data['tab'] = request.form['channel_type']
-        data['source'] = request.form['channel_value']
-        data['result'] = result
+        if result:
+            data['tab'] = request.form['channel_type']
+            data['source'] = request.form['channel_value']
+            data['result'] = result
+        else:
+            flash('当前查询没有找到任何用户')
     return render_template('stats/derivative/channel_funnel.html',
                            data=data)
 
@@ -132,8 +148,11 @@ def growth_funnel():
         gf.update_source(request.form['channel_type'],
                          request.form['channel_value'])
         result = gf.get_funnel_result()
-        data['tab'] = request.form['channel_type']
-        data['source'] = request.form['channel_value']
-        data['result'] = result
+        if result:
+            data['tab'] = request.form['channel_type']
+            data['source'] = request.form['channel_value']
+            data['result'] = result
+        else:
+            flash('当前查询没有找到任何用户')
     return render_template('stats/derivative/growth_funnel.html',
                            data=data)
