@@ -12,7 +12,7 @@ class QueryItem(StatsBase):
         file=app.config['QUERY_PATH'])
 
     def __init__(self, name):
-        self.attrs += ['source', 'columns', 'code', 'count']
+        self.attrs += ['source', 'code', 'count']
         for attr in self.attrs:
             setattr(self, attr, None)
 
@@ -28,14 +28,20 @@ class QueryItem(StatsBase):
         else:
             raise self.AppError('FILE_NOT_FOUND', file=self.query_path)
 
-    def get_result(self, page_size=0, current_page=1):
+    def get_result(self, page_size=0, current_page=1, sort=None):
         if self.source in ('iqg_ro', 'hsq_ro'):
+            exec_code = self.code
+            if sort:
+                exec_code = 'select * from ({sql})t order by {sort}'.format(
+                    sql=self.code,
+                    sort=sort)
+
             data = self.get_mysql_result(self.source,
-                                         self.code,
+                                         exec_code,
                                          page_size,
                                          current_page)
-            if not self.columns:
-                self.columns = data['columns']
+
+            self.columns = data['columns']
             return data['data']
 
         raise self.AppError('UNKNOWN_SOURCE', source=self.source)

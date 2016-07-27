@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 from flask import (Blueprint,
                    render_template,
                    abort,
@@ -10,6 +12,16 @@ bp_stats = Blueprint('stats', __name__)
 
 @bp_stats.route('/query/<tag>')
 def query(tag):
+    sort_param = request.args.get('sort', None)
+    sort_words = None
+    if sort_param:
+        sort_params = sort_param.split('_')
+        sort_words = unquote(unquote(sort_params[0]))
+        if sort_params[1] == 'd':
+            sort_words += ' DESC'
+        elif sort_params[1] == 'a':
+            sort_words += ' ASC'
+
     from ..models.query import QueryItem
     q = QueryItem(tag)
     p = None
@@ -37,7 +49,8 @@ def query(tag):
     total = q.get_result_count()
 
     data['rows'] = q.get_result(page_size=page_size,
-                                current_page=current_page)
+                                current_page=current_page,
+                                sort=sort_words)
     data['columns'] = q.columns
 
     # pagination
