@@ -7,12 +7,16 @@
 {% if pagination.per_page > 0 %}
   {{ pagination.info }}
 {% endif %}
-<label hidden id="sort"></label>
+<label id="sort"></label>
 <table class="table table-hover" id='querytable'>
 <thead>
     <tr>
         {% for col in data['columns'] %}
-            <th style="cursor:pointer" data-sort="{{ col }}" id="th_{{ col }}">{{ col }}</th>
+            {% if data['sort_cols'] and col in data['sort_cols'] %}
+                <th><a href="#" data-sort="{{ col }}" id="sort_{{ col }}">{{ col }}</a></th>
+            {% else %}
+                <th>{{ col }}</th>
+            {% endif %}
         {% endfor %}
     </tr>
 </thead>
@@ -47,13 +51,13 @@ $(document).ready(function(){
         if (objURL['sort']) {
             $("#sort").text(decodeURIComponent(decodeURIComponent(objURL['sort'])))
             sort_params = $("#sort").text().split('_')
-            th_id = 'th_' + sort_params[0]
-            th_origin = $("#" + th_id).text()
+            sort_id = 'sort_' + sort_params[0]
+            sort_origin = $("#" + sort_id).text()
             postfix = ' ↑'
             if (sort_params[1] == 'd') {
                 postfix = ' ↓'
             }
-            $("#" + th_id).text(th_origin + postfix)
+            $("#" + sort_id).text(sort_origin + postfix)
         }
     }
 });
@@ -70,12 +74,13 @@ $("#querytable").tableExport({
     ignoreCSS: ".tableexport-ignore"   // (selector, selector[]), selector(s) to exclude from the exported file
 });
 
-$("th").click(function() {
+$("th a").click(function(e) {
+    e.preventDefault()
     str = $(this).text()
     if ($("#sort").text()) {
-        th_id = "th_" + $("#sort").text().split("_")[0]
-        th_text = $("#" + th_id).text()
-        $("#" + th_id).text(th_text.substr(0, th_text.length-2))
+        sort_id = "sort_" + $("#sort").text().split("_")[0]
+        sort_text = $("#" + sort_id).text()
+        $("#" + sort_id).text(sort_text.substr(0, sort_text.length-2))
     }
     
     if (str.match(" ↑$")) {

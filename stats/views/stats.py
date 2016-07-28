@@ -52,6 +52,8 @@ def query(tag):
                                 current_page=current_page,
                                 sort=sort_words)
     data['columns'] = q.columns
+    if q.sort_cols:
+        data['sort_cols'] = q.sort_cols
 
     # pagination
     p = Pagination(page=current_page,
