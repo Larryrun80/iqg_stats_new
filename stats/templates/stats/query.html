@@ -8,6 +8,29 @@
   {{ pagination.info }}
 {% endif %}
 <label hidden id="sort"></label>
+{% if data['filters'] %}
+    {% from 'macro/forms.html' import render_field %}
+    {% if data['sortqs'] %}
+        <form method=post action="{{ url_for('stats.query', tag=data['route'], sort=data['sortqs']) }}">
+    {% else %}
+        <form method=post action="{{ url_for('stats.query', tag=data['route']) }}">
+    {% endif %}
+        <dl>
+            {% for f in data['filters'] %}
+                {% if f['type']=='str' %}
+                    {{ render_field(form[f['id']]) }}
+                {% elif f['type']=='float' %}
+                    {{ render_field(form[f['id']+'_min']) }}
+                    {{ render_field(form[f['id']+'_max']) }}
+                {% elif f['type']=='date' %}
+                    {{ render_field(form[f['id']+'_earlier']) }}
+                    {{ render_field(form[f['id']+'_later']) }}
+                {% endif %}
+            {% endfor %}
+        </dl>
+        <p><button type="submit">查找</button>
+    </form>
+{% endif %}
 <table class="table table-hover" id='querytable'>
 <thead>
     <tr>

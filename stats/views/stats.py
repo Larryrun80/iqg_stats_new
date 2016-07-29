@@ -6,22 +6,16 @@ from flask import (Blueprint,
                    flash,
                    request)
 from flask.ext.paginate import Pagination
+from wtforms import TextField
+
+from ..models.forms import BaseFilterForm
 
 bp_stats = Blueprint('stats', __name__)
 
 
-@bp_stats.route('/query/<tag>')
+@bp_stats.route('/query/<tag>', methods=['GET', 'POST'])
 def query(tag):
-    sort_param = request.args.get('sort', None)
-    sort_words = None
-    if sort_param:
-        sort_params = sort_param.split('_')
-        sort_words = unquote(unquote(sort_params[0]))
-        if sort_params[1] == 'd':
-            sort_words += ' DESC'
-        elif sort_params[1] == 'a':
-            sort_words += ' ASC'
-
+    # start query
     from ..models.query import QueryItem
     q = QueryItem(tag)
     p = None
@@ -34,6 +28,37 @@ def query(tag):
         'author': q.author['author'],
         'email': q.author['email'],
     }
+
+    # sort part, if client ask for sort
+    sort_param = request.args.get('sort', None)
+    sort_words = None
+    if sort_param:
+        sort_params = sort_param.split('_')
+        sort_words = unquote(unquote(sort_params[0]))
+        if sort_params[1] == 'd':
+            sort_words += ' DESC'
+        elif sort_params[1] == 'a':
+            sort_words += ' ASC'
+        data['sortqs'] = sort_param
+
+    # filters
+    if q.filters:
+        class FilterFormInstance(BaseFilterForm):
+            pass
+
+        FilterFormInstance.load_filters(q.filters)
+        form = FilterFormInstance()
+        # form.load_filters(q.filters)
+        print(form.sku_name)
+        if form.validate_on_submit():
+            for f in q.filters:
+                print(f['name'])
+                if f['type'] == 'str':
+                    print(getattr(form, f['id']).data)
+                if f['type'] == 'float':
+                    print(getattr(form, '{}_min'.format(f['id'])).data)
+                    print(getattr(form, '{}_max'.format(f['id'])).data)
+        data['filters'] = q.filters
 
     current_page = request.args.get('page', 1)
     if q.count:
@@ -62,7 +87,8 @@ def query(tag):
                    record_name='users',
                    bs_version=3)
 
-    return render_template('stats/query.html', data=data, pagination=p)
+    return render_template('stats/query.html', data=data,
+                           pagination=p, form=form)
 
 
 @bp_stats.route('/line/<tag>', methods=['GET', 'POST'])

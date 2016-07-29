@@ -39,6 +39,8 @@ class AppError(Exception):
     # Query
     UNKNOWN_SOURCE = (300001,
                       'unknown data source: {source}')
+    INVALID_FILTER_FORMAT = (300002,
+                             'invalid filter format found')
 
     # Line
     NO_X_AXIS = (400001,

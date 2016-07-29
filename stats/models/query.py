@@ -12,7 +12,7 @@ class QueryItem(StatsBase):
         file=app.config['QUERY_PATH'])
 
     def __init__(self, name):
-        self.attrs += ['source', 'code', 'count', 'sort_cols']
+        self.attrs += ['source', 'code', 'count', 'sort_cols', 'filters']
         for attr in self.attrs:
             setattr(self, attr, None)
 
