@@ -6,7 +6,6 @@ from flask import (Blueprint,
                    flash,
                    request)
 from flask.ext.paginate import Pagination
-from wtforms import TextField
 
 from ..models.forms import BaseFilterForm
 
@@ -43,25 +42,46 @@ def query(tag):
 
     # filters
     if q.filters:
-        class FilterFormInstance(BaseFilterForm):
-            pass
+        filter_param = request.args.get('filter', None)
+        if filter_param:
+            filter_items = unquote(unquote(filter_param)).split('&')
+            filter_query = {}
+            for item in filter_items:
+                if item:
+                    item_kv = item.split('=')
+                    if len(item_kv) == 2:
+                        filter_query[item_kv[0]] = item_kv[1]
 
-        FilterFormInstance.load_filters(q.filters)
-        form = FilterFormInstance()
-        # form.load_filters(q.filters)
-        print(form.sku_name)
-        if form.validate_on_submit():
+            f_code = 'select * from ({})t where '.format(q.code)
+            clauses = []
             for f in q.filters:
-                print(f['name'])
-                if f['type'] == 'str':
-                    print(getattr(form, f['id']).data)
+                if f['type'] == 'str' and f['id'] in filter_query.keys():
+                    clauses.append('{field} like "%{value}%"'.format(
+                        field=f['name'], value=filter_query[f['id']]))
                 if f['type'] == 'float':
-                    print(getattr(form, '{}_min'.format(f['id'])).data)
-                    print(getattr(form, '{}_max'.format(f['id'])).data)
+                    if ('{}_min'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} >= {value}'.format(
+                            field=f['name'],
+                            value=filter_query['{}_min'.format(f['id'])]))
+                    if ('{}_max'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} <= {value}'.format(
+                            field=f['name'],
+                            value=filter_query['{}_max'.format(f['id'])]))
+                if f['type'] == 'date':
+                    if ('{}_early'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} >= "{value}"'.format(
+                            field=f['name'],
+                            value=filter_query['{}_early'.format(f['id'])]))
+                    if ('{}_late'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} <= "{value}"'.format(
+                            field=f['name'],
+                            value=filter_query['{}_late'.format(f['id'])]))
+            f_code = f_code + ' and '.join(clauses)
+            q.code = f_code
         data['filters'] = q.filters
 
     current_page = request.args.get('page', 1)
-    if q.count:
+    if q.paging:
         page_size = request.args.get('pagesize', 20)
     else:
         page_size = 0
@@ -71,11 +91,13 @@ def query(tag):
     except:
         flash('page or pagesize is not int')
         return render_template('stats/query.html')
+    q.count = 'select count(0) from ({})t'.format(q.code)
     total = q.get_result_count()
 
     data['rows'] = q.get_result(page_size=page_size,
                                 current_page=current_page,
                                 sort=sort_words)
+    # total = len(q.get_result())
     data['columns'] = q.columns
     if q.sort_cols:
         data['sort_cols'] = q.sort_cols
@@ -87,8 +109,7 @@ def query(tag):
                    record_name='users',
                    bs_version=3)
 
-    return render_template('stats/query.html', data=data,
-                           pagination=p, form=form)
+    return render_template('stats/query.html', data=data, pagination=p)
 
 
 @bp_stats.route('/line/<tag>', methods=['GET', 'POST'])

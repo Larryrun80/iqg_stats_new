@@ -10,7 +10,9 @@ from .error import AppError
 
 
 class BaseFilterForm(Form):
-    test = PasswordField('New Password', [validators.Required()])
+    # def __init__(self, *args, **kwargs):
+    #     kwargs['csrf_enabled'] = False
+    #     super(BaseFilterForm, self).__init__(*args, **kwargs)
 
     @classmethod
     def load_filters(cls, filters):
@@ -42,8 +44,7 @@ class BaseFilterForm(Form):
         # init the filter
         for item in filters:
             if item['type'] == 'str':
-                setattr(cls, item['id'], TextField(item['name'],
-                        [validators.optional()]))
+                setattr(cls, item['id'], TextField(item['name']))
             if item['type'] == 'float':
                 setattr(cls,
                         '{}_min'.format(item['id']),
