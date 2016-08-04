@@ -1,0 +1,95 @@
+{% macro render_filter(config) %}
+  <table>
+    {% for f in config %}
+    <tr><td  height="30px">
+      {% if f['type']=='str' %}
+          {{ f['name'] }}: </td><td width="10px"></td><td><input id="input_{{ f['id'] }}" placeholder="{{ f['name'] }}">
+      {% elif f['type']=='float' %}
+          {{ f['name'] }}: </td><td width="10px"></td><td><input id="input_{{ f['id'] }}_min" data-filtercheck="float" placeholder="min {{ f['name'] }}"> ~ <input id="input_{{ f['id'] }}_max" data-filtercheck="float" placeholder="max {{ f['name'] }}">
+      {% elif f['type']=='date' %}
+          {{ f['name'] }}: </td><td width="10px"></td><td><input id="input_{{ f['id'] }}_early" data-filtercheck="date" placeholder="YYYY-MM-DD"> ~ <input id="input_{{ f['id'] }}_late" data-filtercheck="date" placeholder="YYYY-MM-DD">
+      {% endif %}
+    </td></tr>
+    {% endfor %}
+  </table>
+  <br>
+  <button type="button" class="btn btn-primary btn-sm" id='submit_filter'>提交查询</button>
+  <div hidden class="alert alert-danger" role="alert" id="alert_filter"></div>
+  <script src="{{ url_for('static', filename='js/url.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/reg.js')}}"></script>
+  <script type="text/javascript">
+     $('#submit_filter').click(function(){
+        var alert_info = ''
+        var filter_query = ''
+        {% for f in config %}
+          {% if f['type'] == 'str' %}
+            if ( $("#input_{{ f['id'] }}").val() ) {
+              filter_query += "{{ f['id'] }}=" + $("#input_{{ f['id'] }}").val() + "&"
+            }
+          {% endif %}
+          {% if f['type'] == 'float' %}
+            if ( $("#input_{{ f['id'] }}_min").val() ) {
+              if ( !$.isNumeric($("#input_{{ f['id'] }}_min").val()) ) {
+                alert_info += "please input a float in min {{ f['name'] }} <br>"
+              }else{
+                filter_query += "{{ f['id'] }}_min=" + $("#input_{{ f['id'] }}_min").val() + "&"
+              }
+            }
+            if ( $("#input_{{ f['id'] }}_max").val() ) {
+              if ( !$.isNumeric($("#input_{{ f['id'] }}_max").val()) ) {
+                alert_info += "please input a float in max {{ f['name'] }} <br>"
+              }else{
+                filter_query += "{{ f['id'] }}_max=" + $("#input_{{ f['id'] }}_max").val() + "&"
+              }
+            }
+          {% endif %}
+          {% if f['type'] == 'date' %}
+            if ( $("#input_{{ f['id'] }}_early").val() ) {
+              if ( !CheckDate($("#input_{{ f['id'] }}_early").val()) ) {
+                alert_info += "please input a 'YYYY-MM-DD' date in early {{ f['name'] }} <br>"
+              }else{
+                filter_query += "{{ f['id'] }}_early=" + $("#input_{{ f['id'] }}_early").val() + "&"
+              }
+            }
+            if ( $("#input_{{ f['id'] }}_late").val() ) {
+              if ( !CheckDate($("#input_{{ f['id'] }}_late").val()) ) {
+                alert_info += "please input a 'YYYY-MM-DD' date in late {{ f['name'] }} <br>"
+              }else{
+                filter_query += "{{ f['id'] }}_late=" + $("#input_{{ f['id'] }}_late").val() + "&"
+              }
+            }
+          {% endif %}
+        {% endfor %}
+
+        if (alert_info!=''){
+          $('#alert_filter').show()
+          $('#alert_filter').html(alert_info)
+        }else{
+          $('#alert_filter').hide()
+          $('#alert_filter').html('')
+          if (filter_query) {
+            location.href=ReplaceUrl(location.href, 'filter', encodeURIComponent(encodeURIComponent(filter_query)))
+          }
+        }
+     })
+
+     // fill filter inputs
+     if (location.search) {
+        qs = location.search.substring(1).split("&")
+        for (var i=0; i<qs.length; i++) {
+            if (qs[i].indexOf('filter=')==0) {
+                string = decodeURIComponent(decodeURIComponent(qs[i])).substring(7)
+                params = string.split("&")
+                for (var j=0; j<params.length; j++) {
+                    if (params[j]) {
+                        kv = params[j].split("=")
+                        if (kv.length == 2) {
+                            $("#input_"+kv[0]).val(kv[1])
+                        }
+                    }
+                }
+            }
+        }
+     }
+  </script>
+{% endmacro %}

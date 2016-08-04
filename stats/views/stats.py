@@ -7,21 +7,14 @@ from flask import (Blueprint,
                    request)
 from flask.ext.paginate import Pagination
 
+from ..models.forms import BaseFilterForm
+
 bp_stats = Blueprint('stats', __name__)
 
 
-@bp_stats.route('/query/<tag>')
+@bp_stats.route('/query/<tag>', methods=['GET', 'POST'])
 def query(tag):
-    sort_param = request.args.get('sort', None)
-    sort_words = None
-    if sort_param:
-        sort_params = sort_param.split('_')
-        sort_words = unquote(unquote(sort_params[0]))
-        if sort_params[1] == 'd':
-            sort_words += ' DESC'
-        elif sort_params[1] == 'a':
-            sort_words += ' ASC'
-
+    # start query
     from ..models.query import QueryItem
     q = QueryItem(tag)
     p = None
@@ -35,8 +28,60 @@ def query(tag):
         'email': q.author['email'],
     }
 
+    # sort part, if client ask for sort
+    sort_param = request.args.get('sort', None)
+    sort_words = None
+    if sort_param:
+        sort_params = sort_param.split('_')
+        sort_words = unquote(unquote(sort_params[0]))
+        if sort_params[1] == 'd':
+            sort_words += ' DESC'
+        elif sort_params[1] == 'a':
+            sort_words += ' ASC'
+        data['sortqs'] = sort_param
+
+    # filters
+    if q.filters:
+        filter_param = request.args.get('filter', None)
+        if filter_param:
+            filter_items = unquote(unquote(filter_param)).split('&')
+            filter_query = {}
+            for item in filter_items:
+                if item:
+                    item_kv = item.split('=')
+                    if len(item_kv) == 2:
+                        filter_query[item_kv[0]] = item_kv[1]
+
+            f_code = 'select * from ({})t where '.format(q.code)
+            clauses = []
+            for f in q.filters:
+                if f['type'] == 'str' and f['id'] in filter_query.keys():
+                    clauses.append('{field} like "%{value}%"'.format(
+                        field=f['name'], value=filter_query[f['id']]))
+                if f['type'] == 'float':
+                    if ('{}_min'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} >= {value}'.format(
+                            field=f['name'],
+                            value=filter_query['{}_min'.format(f['id'])]))
+                    if ('{}_max'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} <= {value}'.format(
+                            field=f['name'],
+                            value=filter_query['{}_max'.format(f['id'])]))
+                if f['type'] == 'date':
+                    if ('{}_early'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} >= "{value}"'.format(
+                            field=f['name'],
+                            value=filter_query['{}_early'.format(f['id'])]))
+                    if ('{}_late'.format(f['id']) in filter_query.keys()):
+                        clauses.append('{field} <= "{value}"'.format(
+                            field=f['name'],
+                            value=filter_query['{}_late'.format(f['id'])]))
+            f_code = f_code + ' and '.join(clauses)
+            q.code = f_code
+        data['filters'] = q.filters
+
     current_page = request.args.get('page', 1)
-    if q.count:
+    if q.paging:
         page_size = request.args.get('pagesize', 20)
     else:
         page_size = 0
@@ -46,11 +91,13 @@ def query(tag):
     except:
         flash('page or pagesize is not int')
         return render_template('stats/query.html')
+    q.count = 'select count(0) from ({})t'.format(q.code)
     total = q.get_result_count()
 
     data['rows'] = q.get_result(page_size=page_size,
                                 current_page=current_page,
                                 sort=sort_words)
+    # total = len(q.get_result())
     data['columns'] = q.columns
     if q.sort_cols:
         data['sort_cols'] = q.sort_cols
