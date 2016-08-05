@@ -4,6 +4,7 @@ from flask import (Blueprint,
                    redirect,
                    abort,
                    flash,
+                   jsonify,
                    request)
 from flask.ext.login import (login_required,
                              logout_user,
@@ -159,3 +160,13 @@ def reset_with_token(token):
 @bp_user.route('/profile')
 def profile():
     return render_template('user/profile.html')
+
+
+@bp_user.route('/fav', methods=['POST'])
+def fav():
+    result = {}
+    op = request.form['op']
+    url = request.form['url']
+    result['result'] = 'success'
+    result['message'] = op
+    return jsonify(result)

@@ -10,14 +10,26 @@
 <li role="separator" class="divider"></li>
 <script type="text/javascript">
     $("#a_favourite").click(function(e) {
-        if($(this).data['fav']=='n') {
-            alert($(this).data['fav'])
-            $(this).data['fav']='y'
-            $(this).text('取消关注')
-        }else{
-            $(this).data['fav']='n'
-            $(this).text('关注此页')   
-        }
+        e.preventDefault()
+
+        $.post( "{{ url_for('user.fav') }}",
+        {
+            'op': ($(this).data('fav') == 'y'),
+            'url': location.pathname
+        },
+        function(data) {
+          if (data.result=='success'){
+            if($("#a_favourite").data('fav')=='n') {
+                $("#a_favourite").data('fav', 'y')
+                $("#a_favourite").text('取消关注')
+            }else{
+                $("#a_favourite").data('fav', 'n')
+                $("#a_favourite").text('关注此页')   
+            }
+            alert('success')
+            return false
+          }
+        }, "json");
     })
 </script>
 {% endblock %}
