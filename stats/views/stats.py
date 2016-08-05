@@ -31,12 +31,13 @@ def query(tag):
     sort_words = None
     if sort_param:
         sort_params = sort_param.split('_')
-        sort_words = unquote(unquote(sort_params[0]))
-        if sort_params[1] == 'd':
-            sort_words += ' DESC'
-        elif sort_params[1] == 'a':
-            sort_words += ' ASC'
-        data['sortqs'] = sort_param
+        if len(sort_params) == 2 and sort_params[1] in ('a', 'd'):
+            sort_words = unquote(unquote(sort_params[0]))
+            if sort_params[1] == 'd':
+                sort_words += ' DESC'
+            elif sort_params[1] == 'a':
+                sort_words += ' ASC'
+            data['sortqs'] = sort_param
 
     # filters
     if q.filters:

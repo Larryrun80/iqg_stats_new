@@ -28,6 +28,9 @@ class AppError(Exception):
     NO_DIR = (120004,
               'no dir found: {dir}')
 
+    SQL_ERROR = (150001,
+                 'sql execute exception: {sql}')
+
     # User
     NO_USER = (200000,
                'user not found')

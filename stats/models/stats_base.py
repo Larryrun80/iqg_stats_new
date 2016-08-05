@@ -43,16 +43,20 @@ class StatsBase(object):
         data = None
         columns = []
         cnx = init_mysql(source)
-        with cnx.cursor() as cursor:
-            if pagesize != 0:
-                start_recorder = (current_page - 1) * pagesize
-                sql = 'select * from ({code})t limit {start}, {size}'.format(
-                    code=sql, start=start_recorder, size=pagesize)
-            cursor.execute(sql)
-            data = cursor.fetchall()
+        try:
+            with cnx.cursor() as cursor:
+                if pagesize != 0:
+                    start_recorder = (current_page - 1) * pagesize
+                    sql = \
+                        'select * from ({code})t limit {start}, {size}'.format(
+                            code=sql, start=start_recorder, size=pagesize)
+                cursor.execute(sql)
+                data = cursor.fetchall()
 
-            for col in cursor.description:
-                columns.append(col[0])
+                for col in cursor.description:
+                    columns.append(col[0])
+        except:
+            raise AppError('SQL_ERROR', sql=sql)
         cnx.close()
 
         return {'data': data, 'columns': columns}
@@ -67,10 +71,13 @@ class StatsBase(object):
                select count(0) from ...
         '''
         cnx = init_mysql(source)
-        cnt = 0
-        with cnx.cursor() as cursor:
-            cursor.execute(sql)
-            cnt = cursor.fetchone()[0]
+        try:
+            cnt = 0
+            with cnx.cursor() as cursor:
+                cursor.execute(sql)
+                cnt = cursor.fetchone()[0]
+        except:
+            raise AppError('SQL_ERROR', sql=sql)
 
         cnx.close()
         return cnt
