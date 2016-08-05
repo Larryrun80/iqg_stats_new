@@ -7,8 +7,6 @@ from flask import (Blueprint,
                    request)
 from flask.ext.paginate import Pagination
 
-from ..models.forms import BaseFilterForm
-
 bp_stats = Blueprint('stats', __name__)
 
 

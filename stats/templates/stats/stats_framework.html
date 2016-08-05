@@ -5,6 +5,22 @@
 <script src="{{ url_for('static', filename='js/vendor/FileSaver.min.js')}}"></script>
 <script src="{{ url_for('static', filename='js/vendor/tableexport.min.js')}}"></script>
 {% endblock %}
+{% block profile %} 
+<li><a href=# id="a_favourite" data-fav="n">关注此页</a></li>
+<li role="separator" class="divider"></li>
+<script type="text/javascript">
+    $("#a_favourite").click(function(e) {
+        if($(this).data['fav']=='n') {
+            alert($(this).data['fav'])
+            $(this).data['fav']='y'
+            $(this).text('取消关注')
+        }else{
+            $(this).data['fav']='n'
+            $(this).text('关注此页')   
+        }
+    })
+</script>
+{% endblock %}
 {% block content %} 
 {% if data %}
 {% filter markdown %}
@@ -15,3 +31,4 @@
 {% block stats %} {% endblock %}
 {% endif %}
 {% endblock %}
+

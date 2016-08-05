@@ -48,6 +48,7 @@
                   <li><a href={{url_for('user.resend')}}>重发激活邮件</a></li>
                 {% endif %}
                 <li role="separator" class="divider"></li>
+                {% block profile %}{% endblock %}
                 <li><a href={{url_for('user.logout')}}>登出</a></li>
               </ul>
             </li>

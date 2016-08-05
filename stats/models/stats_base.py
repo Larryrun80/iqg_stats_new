@@ -46,8 +46,8 @@ class StatsBase(object):
         with cnx.cursor() as cursor:
             if pagesize != 0:
                 start_recorder = (current_page - 1) * pagesize
-                sql += ' limit {start}, {size}'.format(start=start_recorder,
-                                                       size=pagesize)
+                sql = 'select * from ({code})t limit {start}, {size}'.format(
+                    code=sql, start=start_recorder, size=pagesize)
             cursor.execute(sql)
             data = cursor.fetchall()
 
