@@ -1,3 +1,4 @@
+import re
 from urllib.parse import unquote
 
 from flask import (Blueprint,
@@ -25,6 +26,25 @@ def query(tag):
         'author': q.author['author'],
         'email': q.author['email'],
     }
+
+    # params
+    param_regex = re.compile(r'\{\w+\}', re.IGNORECASE)
+    params = re.findall(param_regex, q.code)
+
+    for p in params:
+        rp = request.args.get(p[1:-1], None)
+        if rp:
+            if p[1] not in ('"', "'") or p[-2] not in ('"', "'"):  # not str
+                try:
+                    float(rp)
+                except:
+                    flash('参数类型不符')
+                    return render_template('stats/query.html')
+                q.code = q.code.replace(p, rp)
+                print(q.code)
+        else:
+            flash('缺少参数')
+            return render_template('stats/query.html')
 
     # sort part, if client ask for sort
     sort_param = request.args.get('sort', None)

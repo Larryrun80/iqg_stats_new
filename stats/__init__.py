@@ -2,12 +2,15 @@ import os
 
 from flask import Flask, g, render_template
 
+from .models.jsonencoder import FlaskJSONEncoder
+
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config.default')
 app.config.from_pyfile('config.py')
 app.config.from_envvar('APP_CONFIG_FILE')
 app.basedir = os.path.abspath(os.path.dirname(__file__))
+app.json_encoder = FlaskJSONEncoder
 
 # markdown
 from flaskext.markdown import Markdown
@@ -81,11 +84,13 @@ from .views.home import home
 from .views.user import bp_user
 from .views.stats import bp_stats
 from .views.assistance import bp_ass
+from .views.kits import kits
 
 app.register_blueprint(home)
 app.register_blueprint(bp_user, url_prefix='/account')
 app.register_blueprint(bp_stats, url_prefix='/data')
 app.register_blueprint(bp_ass, url_prefix='/assistance')
+app.register_blueprint(kits, url_prefix='/kits')
 
 # error page
 @app.errorhandler(404)
