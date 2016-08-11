@@ -14,11 +14,11 @@
 
         $.post( "{{ url_for('user.fav') }}",
         {
-            'op': ($(this).data('fav') == 'y'),
-            'url': location.pathname
+            'op': $(this).data('fav'),
+            'route': location.pathname
         },
         function(data) {
-          if (data.result=='success'){
+          if (data.success){
             if($("#a_favourite").data('fav')=='n') {
                 $("#a_favourite").data('fav', 'y')
                 $("#a_favourite").text('取消关注')
@@ -26,8 +26,11 @@
                 $("#a_favourite").data('fav', 'n')
                 $("#a_favourite").text('关注此页')   
             }
-            alert('success')
+            alert('操作成功')
             return false
+          }
+          else{
+            alert('操作失败，请稍后重试')
           }
         }, "json");
     })

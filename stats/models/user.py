@@ -186,3 +186,40 @@ class User(BaseModel):
                     roles.append(role)
 
         return roles
+
+    def add_favourite(self, route):
+        if not route or not isinstance(route, str):
+            raise self.AppError('INVALID_DATA')
+
+        sql = '''
+                INSERT INTO user_favourite (user_id, route)
+                SELECT * FROM (SELECT {uid}, '{route}') AS tmp
+                WHERE NOT EXISTS
+                (SELECT id
+                 FROM   user_favourite
+                 WHERE  user_id={uid}
+                 AND    route='{route}')
+                LIMIT 1
+              '''.format(uid=self.id, route=route)
+
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            self.mysql_db.commit()
+
+        return True
+
+    def remove_favourite(self, route):
+        if not route or not isinstance(route, str):
+            raise self.AppError('INVALID_DATA')
+
+        sql = '''
+                DELETE FROM user_favourite
+                WHERE       user_id={uid}
+                AND         route='{route}'
+              '''.format(uid=self.id, route=route)
+
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            self.mysql_db.commit()
+
+        return True

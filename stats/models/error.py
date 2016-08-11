@@ -12,6 +12,8 @@ class AppError(Exception):
                   'type error found, "{param}" should be "{expect_type}"')
     DB_TAG_ERROR = (100003,
                     'data source error, {tag}')
+    INVALID_DATA = (100004,
+                    'invalid data found')
 
     CLASS_PARAM_MISSING = (110000,
                            'need param "{param}" to init class, but not found')
