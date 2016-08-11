@@ -13,6 +13,7 @@ class Kits(StatsBase):
                 from        delivery_template
                 where       merchant_id={mid}
                 group by    concat(base_price, ',', extra_unit_price)
+                order by    base_price
               '''.format(mid=mid)
 
         return self.get_mysql_result('hsq_ro', sql)
