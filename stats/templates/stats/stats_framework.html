@@ -6,19 +6,26 @@
 <script src="{{ url_for('static', filename='js/vendor/tableexport.min.js')}}"></script>
 {% endblock %}
 {% block profile %} 
-<li><a href=# id="a_favourite" data-fav="n">关注此页</a></li>
-<li role="separator" class="divider"></li>
+{% if data and 'is_favourite' in data.keys() %}
+    {% if not data['is_favourite'] %}
+        <li><a href=# id="a_favourite" data-fav="n">关注此页</a></li>
+    {% else %}
+        <li><a href=# id="a_favourite" data-fav="y">取消关注</a></li>
+    {% endif %}
+    <li role="separator" class="divider"></li>
+{% endif %}
 <script type="text/javascript">
     $("#a_favourite").click(function(e) {
         e.preventDefault()
 
         $.post( "{{ url_for('user.fav') }}",
         {
-            'op': ($(this).data('fav') == 'y'),
-            'url': location.pathname
+            'op': $(this).data('fav'),
+            'route': location.pathname,
+            'comment': "{{ data['title'] }}"
         },
         function(data) {
-          if (data.result=='success'){
+          if (data.success){
             if($("#a_favourite").data('fav')=='n') {
                 $("#a_favourite").data('fav', 'y')
                 $("#a_favourite").text('取消关注')
@@ -26,8 +33,11 @@
                 $("#a_favourite").data('fav', 'n')
                 $("#a_favourite").text('关注此页')   
             }
-            alert('success')
+            alert('操作成功')
             return false
+          }
+          else{
+            alert('操作失败，请稍后重试')
           }
         }, "json");
     })

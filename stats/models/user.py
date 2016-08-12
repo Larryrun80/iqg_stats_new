@@ -1,5 +1,18 @@
+from flask.ext.login import AnonymousUserMixin
+
 from .base import BaseModel
 from .. import bcrypt
+
+
+class Anonymous(AnonymousUserMixin):
+    def __init__(self):
+        self.id = 0
+        self.username = 'Guest'
+        self.realname = 'Guest'
+        self.password = ''
+        self.email = '-'
+        self.actived = False
+        self.enabled = False
 
 
 class User(BaseModel):
@@ -186,3 +199,67 @@ class User(BaseModel):
                     roles.append(role)
 
         return roles
+
+    def is_favourite(self, route):
+        sql = '''
+                SELECT count(0)
+                FROM   user_favourite
+                WHERE  user_id={uid}
+                AND    route='{route}'
+              '''.format(uid=self.id, route=route)
+
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchone()
+
+        return result[0] > 0
+
+    def get_favourite(self):
+        sql = '''
+                SELECT route, comment
+                FROM   user_favourite
+                WHERE  user_id={uid}
+              '''.format(uid=self.id)
+
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+
+        return result
+
+    def add_favourite(self, route, comment=''):
+        if not route or not isinstance(route, str):
+            raise self.AppError('INVALID_DATA')
+
+        sql = '''
+                INSERT INTO user_favourite (user_id, route, comment)
+                SELECT * FROM (SELECT {uid}, '{route}', '{comment}') AS tmp
+                WHERE NOT EXISTS
+                (SELECT id
+                 FROM   user_favourite
+                 WHERE  user_id={uid}
+                 AND    route='{route}')
+                LIMIT 1
+              '''.format(uid=self.id, route=route, comment=comment)
+
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            self.mysql_db.commit()
+
+        return True
+
+    def remove_favourite(self, route):
+        if not route or not isinstance(route, str):
+            raise self.AppError('INVALID_DATA')
+
+        sql = '''
+                DELETE FROM user_favourite
+                WHERE       user_id={uid}
+                AND         route='{route}'
+              '''.format(uid=self.id, route=route)
+
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            self.mysql_db.commit()
+
+        return True

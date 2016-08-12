@@ -1,29 +1,55 @@
 {% extends "layout.html" %}
 {% block title %} profile {% endblock %}
 {% block content %} 
-
-{% filter markdown %}
-
-{% if current_user.is_active %}
-
-  Username:  {{ current_user.username }}
-
-  Realname:  {{ current_user.realname }}
-
-  Email:  {{ current_user.email }}
-
-  Actived:  {{ current_user.is_active }}
-
-  Authorized: {{ current_user.is_authenticated }}
-
-  Roles: {{ current_user.roles }}
-
-  <div class="clearfix" style="margin-bottom: 30px;"></div>
-
-  <a href="{{ url_for('home.index') }}">返回首页</a>
-
-{% endif %}
-
-{% endfilter %}
+<style type="text/css">
+    #profile { padding-left:0; padding-right:10%; }
+    #profile li { word-wrap: break-word; padding-left:0;padding-right:0;}
+</style>
+<div class="col-md-4">
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        <h3 class="panel-title">我的信息</h3>
+      </div>
+      <div class="panel-body">
+        <ul id="profile" type="none">
+        {% if current_user.is_active %}
+            <li class="col-md-4"><div>Username:</div></li>
+            <li class="col-md-8">{{ current_user.username }}</li>
+            <li class="col-md-4">Realname:</li>
+            <li class="col-md-8">{{ current_user.realname }}</li>
+            <li class="col-md-4">Email:</li>
+            <li class="col-md-8">{{ current_user.email }}</li>
+            <li class="col-md-4">Actived:</li>
+            <li class="col-md-8">{{ current_user.is_active }}</li>
+            <li class="col-md-4">Authorized:</li>
+            <li class="col-md-8">{{ current_user.is_authenticated }}</li>
+            <li class="col-md-4">Roles:</li>
+            <li class="col-md-8">{{ current_user.roles }}</li>
+        {% endif %}
+        </ul>
+      </div>
+    </div>
+</div>
+<div class="col-md-8">
+    <div class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">我的关注</h3>
+      </div>
+      <div class="panel-body">
+        <ul id="profile" type="none">
+        {% if current_user.is_active %}
+            {% if data and data['fav'] %}
+                <ul type="none">
+                    {% for f in data['fav'] %}
+                        <li><a href="{{ f[0] }}">{{ f[1] }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                目前您没有关注任何统计页面，请打开想要关注的统计，点击右上角的“添加关注”按钮加入关注
+            {% endif %}
+        {% endif %}
+      </div>
+    </div>
+</div>
 
 {% endblock %}

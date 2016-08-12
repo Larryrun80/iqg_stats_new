@@ -158,15 +158,28 @@ def reset_with_token(token):
 
 
 @bp_user.route('/profile')
+@login_required
 def profile():
-    return render_template('user/profile.html')
+    user = current_user
+    data = {'fav': user.get_favourite()}
+    return render_template('user/profile.html', data=data)
 
 
 @bp_user.route('/fav', methods=['POST'])
+@login_required
 def fav():
-    result = {}
+    result = {'success': False, 'message': 'Unknown Operation'}
+    user = current_user
     op = request.form['op']
-    url = request.form['url']
-    result['result'] = 'success'
-    result['message'] = op
+    comment = request.form['comment']
+    route = request.form['route']
+
+    if op == 'n':
+        if user.add_favourite(route, comment):
+            result['success'] = True
+            result['message'] = ''
+    elif op == 'y':
+        if user.remove_favourite(route):
+            result['success'] = True
+            result['message'] = ''
     return jsonify(result)
