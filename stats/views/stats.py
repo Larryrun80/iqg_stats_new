@@ -5,6 +5,10 @@ from flask import (Blueprint,
                    abort,
                    flash,
                    request)
+from flask.ext.login import (login_required,
+                             logout_user,
+                             login_user,
+                             current_user)
 from flask.ext.paginate import Pagination
 
 bp_stats = Blueprint('stats', __name__)
@@ -25,6 +29,10 @@ def query(tag):
         'author': q.author['author'],
         'email': q.author['email'],
     }
+    if current_user:
+        user = current_user
+        if user.id:
+            data['is_favourite'] = user.is_favourite(request.path)
 
     # sort part, if client ask for sort
     sort_param = request.args.get('sort', None)

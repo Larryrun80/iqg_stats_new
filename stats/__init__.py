@@ -48,10 +48,11 @@ def teardown(exception):
 
 # Flask-login
 from flask_login import LoginManager
-from .models.user import User
+from .models.user import User, Anonymous
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'user.signin'
+login_manager.anonymous_user = Anonymous
 
 
 @login_manager.user_loader

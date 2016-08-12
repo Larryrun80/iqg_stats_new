@@ -6,8 +6,14 @@
 <script src="{{ url_for('static', filename='js/vendor/tableexport.min.js')}}"></script>
 {% endblock %}
 {% block profile %} 
-<li><a href=# id="a_favourite" data-fav="n">关注此页</a></li>
-<li role="separator" class="divider"></li>
+{% if data and 'is_favourite' in data.keys() %}
+    {% if not data['is_favourite'] %}
+        <li><a href=# id="a_favourite" data-fav="n">关注此页</a></li>
+    {% else %}
+        <li><a href=# id="a_favourite" data-fav="y">取消关注</a></li>
+    {% endif %}
+    <li role="separator" class="divider"></li>
+{% endif %}
 <script type="text/javascript">
     $("#a_favourite").click(function(e) {
         e.preventDefault()
