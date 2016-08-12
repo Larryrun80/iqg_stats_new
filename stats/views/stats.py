@@ -217,6 +217,10 @@ def channel_funnel():
     from ..models.derivative.channelfunnel import ChannelFunnel
     cf = ChannelFunnel()
     data = {
+        'title': cf.title,
+        'route': cf.route,
+        'author': cf.author['author'],
+        'email': cf.author['email'],
         'coupon_info': cf.get_coupons()
     }
 
@@ -244,6 +248,10 @@ def growth_funnel():
     from ..models.derivative.growthfunnel import GrowthFunnel
     gf = GrowthFunnel()
     data = {
+        'title': gf.title,
+        'route': gf.route,
+        'author': gf.author['author'],
+        'email': gf.author['email'],
         'coupon_info': gf.get_coupons()
     }
 
