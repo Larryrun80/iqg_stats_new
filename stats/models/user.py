@@ -214,20 +214,33 @@ class User(BaseModel):
 
         return result[0] > 0
 
-    def add_favourite(self, route):
+    def get_favourite(self):
+        sql = '''
+                SELECT route, comment
+                FROM   user_favourite
+                WHERE  user_id={uid}
+              '''.format(uid=self.id)
+
+        with self.mysql_db.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+
+        return result
+
+    def add_favourite(self, route, comment=''):
         if not route or not isinstance(route, str):
             raise self.AppError('INVALID_DATA')
 
         sql = '''
-                INSERT INTO user_favourite (user_id, route)
-                SELECT * FROM (SELECT {uid}, '{route}') AS tmp
+                INSERT INTO user_favourite (user_id, route, comment)
+                SELECT * FROM (SELECT {uid}, '{route}', '{comment}') AS tmp
                 WHERE NOT EXISTS
                 (SELECT id
                  FROM   user_favourite
                  WHERE  user_id={uid}
                  AND    route='{route}')
                 LIMIT 1
-              '''.format(uid=self.id, route=route)
+              '''.format(uid=self.id, route=route, comment=comment)
 
         with self.mysql_db.cursor() as cursor:
             cursor.execute(sql)

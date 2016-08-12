@@ -21,7 +21,8 @@
         $.post( "{{ url_for('user.fav') }}",
         {
             'op': $(this).data('fav'),
-            'route': location.pathname
+            'route': location.pathname,
+            'comment': "{{ data['title'] }}"
         },
         function(data) {
           if (data.success){
