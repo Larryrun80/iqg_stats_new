@@ -107,7 +107,7 @@ def query(tag):
                 if clauses:
                     f_code = f_code + ' and '.join(clauses)
                     q.code = f_code
-                    data['filters'] = q.filters
+        data['filters'] = q.filters
 
     current_page = request.args.get('page', 1)
     if q.paging:
