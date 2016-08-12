@@ -1,3 +1,4 @@
+import re
 from urllib.parse import unquote
 
 from flask import (Blueprint,
@@ -34,6 +35,25 @@ def query(tag):
         if user.id:
             data['is_favourite'] = user.is_favourite(request.path)
 
+    # params
+    param_regex = re.compile(r'\{\w+\}', re.IGNORECASE)
+    params = re.findall(param_regex, q.code)
+
+    for p in params:
+        rp = request.args.get(p[1:-1], None)
+        if rp:
+            if p[1] not in ('"', "'") or p[-2] not in ('"', "'"):  # not str
+                try:
+                    float(rp)
+                except:
+                    flash('参数类型不符')
+                    return render_template('stats/query.html')
+                q.code = q.code.replace(p, rp)
+                print(q.code)
+        else:
+            flash('缺少参数')
+            return render_template('stats/query.html')
+
     # sort part, if client ask for sort
     sort_param = request.args.get('sort', None)
     sort_words = None
@@ -59,33 +79,35 @@ def query(tag):
                     if len(item_kv) == 2:
                         filter_query[item_kv[0]] = item_kv[1]
 
-            f_code = 'select * from ({})t where '.format(q.code)
-            clauses = []
-            for f in q.filters:
-                if f['type'] == 'str' and f['id'] in filter_query.keys():
-                    clauses.append('{field} like "%{value}%"'.format(
-                        field=f['name'], value=filter_query[f['id']]))
-                if f['type'] == 'float':
-                    if ('{}_min'.format(f['id']) in filter_query.keys()):
-                        clauses.append('{field} >= {value}'.format(
-                            field=f['name'],
-                            value=filter_query['{}_min'.format(f['id'])]))
-                    if ('{}_max'.format(f['id']) in filter_query.keys()):
-                        clauses.append('{field} <= {value}'.format(
-                            field=f['name'],
-                            value=filter_query['{}_max'.format(f['id'])]))
-                if f['type'] == 'date':
-                    if ('{}_early'.format(f['id']) in filter_query.keys()):
-                        clauses.append('{field} >= "{value}"'.format(
-                            field=f['name'],
-                            value=filter_query['{}_early'.format(f['id'])]))
-                    if ('{}_late'.format(f['id']) in filter_query.keys()):
-                        clauses.append('{field} <= "{value}"'.format(
-                            field=f['name'],
-                            value=filter_query['{}_late'.format(f['id'])]))
-            f_code = f_code + ' and '.join(clauses)
-            q.code = f_code
-        data['filters'] = q.filters
+            if filter_query:
+                f_code = 'select * from ({})t where '.format(q.code)
+                clauses = []
+                for f in q.filters:
+                    if f['type'] == 'str' and f['id'] in filter_query.keys():
+                        clauses.append('{field} like "%{value}%"'.format(
+                            field=f['name'], value=filter_query[f['id']]))
+                    if f['type'] == 'float':
+                        if ('{}_min'.format(f['id']) in filter_query.keys()):
+                            clauses.append('{field} >= {value}'.format(
+                                field=f['name'],
+                                value=filter_query['{}_min'.format(f['id'])]))
+                        if ('{}_max'.format(f['id']) in filter_query.keys()):
+                            clauses.append('{field} <= {value}'.format(
+                                field=f['name'],
+                                value=filter_query['{}_max'.format(f['id'])]))
+                    if f['type'] == 'date':
+                        if ('{}_early'.format(f['id']) in filter_query.keys()):
+                            clauses.append('{field} >= "{value}"'.format(
+                                field=f['name'],
+                                value=filter_query['{}_early'.format(f['id'])]))
+                        if ('{}_late'.format(f['id']) in filter_query.keys()):
+                            clauses.append('{field} <= "{value}"'.format(
+                                field=f['name'],
+                                value=filter_query['{}_late'.format(f['id'])]))
+                if clauses:
+                    f_code = f_code + ' and '.join(clauses)
+                    q.code = f_code
+                    data['filters'] = q.filters
 
     current_page = request.args.get('page', 1)
     if q.paging:

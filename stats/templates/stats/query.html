@@ -42,12 +42,28 @@
 {% for row in data['rows'] %}
     <tr>
         {% for col in row %}
-            <td> <a href='#'>{{ col|safe }}</a> </td>
+            <td> {{ col|safe }} </td>
         {% endfor %}
     </tr>
 {% endfor %}
 </tbody>
 </table>
+<div class="modal fade bs-example-modal-lg" id="modal_query" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="modal-title">Modal title</h4>
+      </div>
+      <div class="modal-body" id="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% if pagination.per_page > 0 %}
   {{ pagination.links }}
 {% endif %}
@@ -114,6 +130,46 @@ $("th a").click(function(e) {
 
     location.href=ReplaceUrl(location.href, 'sort', encodeURIComponent(encodeURIComponent($("#sort").text())))
 });
+
+$('#modal_query').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget) // Button that triggered the modal
+    var mid = button.data('mid')
+    var url = 'http://' + location.host + '/' + button.data('url')
+
+    $.post( url,
+            {
+              'mid': mid
+            },
+            function(data) {
+              if (data.title){
+                $('#modal-title').text(data.title)
+              }
+
+              if (!data.success){
+                $('#modal-body').html('查询数据失败')
+              }
+              else {
+                if (data.type == 'table') {
+                    html_code = '<div clas="table-responsive"><table class="table table-striped"><thead><tr>'
+                    for (var i=0;i<data['info']['columns'].length;i++){
+                        html_code += '<th>'+data['info']['columns'][i]+'</th>'
+                    }
+                    html_code += '</tr></thead>'
+
+                    for (var i=0;i<data['info']['data'].length;i++){
+                        html_code += '<tr>'
+                        for (var j=0;j<data['info']['data'][i].length;j++){
+                            html_code += '<td>'+data['info']['data'][i][j]+'</td>'
+                        }
+                        html_code += '</tr>'
+                    }
+
+                    html_code += '</table></div>'
+                    $('#modal-body').html(html_code)
+                }
+              }
+            }, "json");
+})
 
 </script>
 {% endblock %}
