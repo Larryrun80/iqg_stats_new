@@ -154,6 +154,12 @@ def line(tag):
         'author': l.author['author'],
         'email': l.author['email'],
     }
+
+    if current_user:
+        user = current_user
+        if user.id:
+            data['is_favourite'] = user.is_favourite(request.path)
+
     if request.method == 'POST':
         lines = l.get_result()
         data['labels'] = l.x_axis_value
@@ -172,6 +178,12 @@ def period(tag):
         'author': p.author['author'],
         'email': p.author['email'],
     }
+
+    if current_user:
+        user = current_user
+        if user.id:
+            data['is_favourite'] = user.is_favourite(request.path)
+
     if request.method == 'POST':
         data['data'] = p.assemble_data()
 
@@ -188,6 +200,12 @@ def funnel(tag):
         'author': f.author['author'],
         'email': f.author['email'],
     }
+
+    if current_user:
+        user = current_user
+        if user.id:
+            data['is_favourite'] = user.is_favourite(request.path)
+
     if request.method == 'POST':
         data['data'] = f.get_funnel_result()
 
@@ -201,6 +219,12 @@ def channel_funnel():
     data = {
         'coupon_info': cf.get_coupons()
     }
+
+    if current_user:
+        user = current_user
+        if user.id:
+            data['is_favourite'] = user.is_favourite(request.path)
+
     if request.method == 'POST':
         cf.update_source(request.form['channel_type'],
                          request.form['channel_value'])
@@ -222,6 +246,12 @@ def growth_funnel():
     data = {
         'coupon_info': gf.get_coupons()
     }
+
+    if current_user:
+        user = current_user
+        if user.id:
+            data['is_favourite'] = user.is_favourite(request.path)
+
     if request.method == 'POST':
         gf.update_source(request.form['channel_type'],
                          request.form['channel_value'])
