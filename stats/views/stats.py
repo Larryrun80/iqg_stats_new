@@ -1,6 +1,7 @@
 import re
 from urllib.parse import unquote
 
+import arrow
 from flask import (Blueprint,
                    render_template,
                    abort,
@@ -39,20 +40,42 @@ def query(tag):
     param_regex = re.compile(r'\{\w+\}', re.IGNORECASE)
     params = re.findall(param_regex, q.code)
 
-    for p in params:
-        rp = request.args.get(p[1:-1], None)
-        if rp:
-            if p[1] not in ('"', "'") or p[-2] not in ('"', "'"):  # not str
-                try:
-                    float(rp)
-                except:
-                    flash('参数类型不符')
-                    return render_template('stats/query.html')
-                q.code = q.code.replace(p, rp)
-                print(q.code)
+    if params:
+        param_check = True
+        if not q.params:
+            param_check = False
         else:
-            flash('缺少参数')
-            return render_template('stats/query.html')
+            for p in params:
+                if p[1:-1] not in q.params.keys():  # 如果yaml中没有定义param
+                    param_check = False
+                    break
+                else:  # 开始处理参数
+                    val = None
+                    yp = q.params[p[1:-1]]
+                    if 'default' in yp.keys():
+                        val = yp['default']
+                    rp = request.args.get(p[1:-1], None)
+                    if rp:
+                        val = rp
+                    if val is not None:
+                        if yp['type'] == 'date':
+                            if val == 'yesterday':
+                                val = arrow.now().replace(days=-1)\
+                                                 .format('YYYY-MM-DD')
+                            if val == 'today':
+                                val = arrow.now().format('YYYY-MM-DD')
+                        elif yp['type'] in ('int', 'float'):
+                            try:
+                                float(val)
+                            except:
+                                flash('参数类型不符')
+                                return render_template('stats/query.html',
+                                                       data=data)
+
+                        q.code = q.code.replace(p, val)
+            if not param_check:
+                flash('缺少参数或参数🈶有问题')
+                return render_template('stats/query.html', data=data)
 
     # sort part, if client ask for sort
     sort_param = request.args.get('sort', None)

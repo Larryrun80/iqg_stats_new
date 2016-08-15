@@ -12,7 +12,8 @@ class QueryItem(StatsBase):
         file=app.config['QUERY_PATH'])
 
     def __init__(self, name):
-        self.attrs += ['source', 'code', 'paging', 'sort_cols', 'filters']
+        self.attrs += ['source', 'code', 'paging',
+                       'sort_cols', 'filters', 'params']
         for attr in self.attrs:
             setattr(self, attr, None)
         self.count = None  # for pagination
