@@ -67,7 +67,9 @@
         }else{
           $('#alert_filter').hide()
           $('#alert_filter').html('')
-          location.href=ReplaceUrl(location.href, 'filter', encodeURIComponent(encodeURIComponent(filter_query)))
+          r_url=ReplaceUrl(location.href, 'page', 1)
+          r_url=ReplaceUrl(r_url, 'filter', encodeURIComponent(encodeURIComponent(filter_query)))
+          location.href=r_url
         }
      })
 

@@ -74,7 +74,7 @@ def query(tag):
 
                         q.code = q.code.replace(p, val)
             if not param_check:
-                flash('缺少参数或参数🈶有问题')
+                flash('缺少参数或参数有问题')
                 return render_template('stats/query.html', data=data)
 
     # sort part, if client ask for sort
@@ -122,7 +122,8 @@ def query(tag):
                         if ('{}_early'.format(f['id']) in filter_query.keys()):
                             clauses.append('{field} >= "{value}"'.format(
                                 field=f['name'],
-                                value=filter_query['{}_early'.format(f['id'])]))
+                                value=filter_query[
+                                    '{}_early'.format(f['id'])]))
                         if ('{}_late'.format(f['id']) in filter_query.keys()):
                             clauses.append('{field} <= "{value}"'.format(
                                 field=f['name'],
@@ -149,6 +150,7 @@ def query(tag):
     data['rows'] = q.get_result(page_size=page_size,
                                 current_page=current_page,
                                 sort=sort_words)
+
     # total = len(q.get_result())
     data['columns'] = q.columns
     if q.sort_cols:
