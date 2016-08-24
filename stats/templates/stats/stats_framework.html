@@ -48,6 +48,12 @@
 {% filter markdown %}
 #### {{ data['title'] }}
 ##### - Authored by [{{ data['author'] }}](mailto:{{ data['email'] }})
+    {% if data['params'] %}
+##### - Params:
+        {% for k, v in data['params'].items() %}
+##### &nbsp;&nbsp;&nbsp;&nbsp;{{ k }}: {{ v['description'] }}
+        {% endfor %}
+    {% endif %}
 {% endfilter %}
 
 {% block stats %} {% endblock %}

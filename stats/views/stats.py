@@ -30,6 +30,7 @@ def query(tag):
         'route': q.route,
         'author': q.author['author'],
         'email': q.author['email'],
+        'params': q.params,
     }
     if current_user:
         user = current_user
