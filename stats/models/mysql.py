@@ -1,7 +1,11 @@
 import pymysql
 
-from .. import app
-from .error import AppError
+try:
+    from .. import app
+    from .error import AppError
+except:  # script also import this module, can not use relative import
+    from stats import app
+    from stats.models.error import AppError
 
 
 def init_mysql(tag=''):
