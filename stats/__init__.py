@@ -8,7 +8,10 @@ from .models.jsonencoder import FlaskJSONEncoder
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config.default')
 app.config.from_pyfile('config.py')
-app.config.from_envvar('APP_CONFIG_FILE')
+try:
+    app.config.from_envvar('APP_CONFIG_FILE')
+except:
+    pass
 app.basedir = os.path.abspath(os.path.dirname(__file__))
 app.json_encoder = FlaskJSONEncoder
 
