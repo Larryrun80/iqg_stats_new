@@ -153,9 +153,9 @@ class StatsBase(object):
         else:
             raise AppError('DB_TAG_ERROR', tag=source)
 
-    def get_data(self, source, code):
+    def get_data(self, source, code, pagesize=0, current_page=1):
         if source in app.config['MYSQL_SOURCES']:
-            return self.get_mysql_result(source, code)
+            return self.get_mysql_result(source, code, pagesize, current_page)
         elif source in app.config['MONGO_SOURCES']:
             return self.get_mongo_result(source, code)
         else:

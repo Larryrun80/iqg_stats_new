@@ -31,25 +31,19 @@ class QueryItem(StatsBase):
             raise self.AppError('FILE_NOT_FOUND', file=self.query_path)
 
     def get_result(self, page_size=0, current_page=1, sort=None):
-        if self.source in ('iqg_ro', 'hsq_ro'):
-            exec_code = self.code
-            if sort:
-                exec_code = 'select * from ({sql})t order by {sort}'.format(
-                    sql=self.code,
-                    sort=sort)
+        exec_code = self.code
+        if sort:
+            exec_code = 'select * from ({sql})t order by {sort}'.format(
+                sql=self.code,
+                sort=sort)
 
-            data = self.get_mysql_result(self.source,
-                                         exec_code,
-                                         page_size,
-                                         current_page)
+        data = self.get_data(self.source,
+                             exec_code,
+                             page_size,
+                             current_page)
 
-            self.columns = data['columns']
-            return data['data']
-
-        raise self.AppError('UNKNOWN_SOURCE', source=self.source)
+        self.columns = data['columns']
+        return data['data']
 
     def get_result_count(self):
-        if self.count and self.source in ('iqg_ro', 'hsq_ro'):
-            return self.get_mysql_result_count(self.source, self.count)
-
-        return None
+        return self.get_data_count(self.source, self.count)
