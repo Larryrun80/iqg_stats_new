@@ -12,6 +12,10 @@ MAIL_USE_TLS = False
 MAIL_USE_SSL = False
 MAIL_MAX_EMAILS = None
 
+MAIL_USERNAME = "guonan@doweidu.com"
+MAIL_PASSWORD = "larryg80"
+MAIL_DEFAULT_SENDER = "guonan@doweidu.com"
+
 # Debug tools
 DEBUG_TB_INTERCEPT_REDIRECTS = False
 
