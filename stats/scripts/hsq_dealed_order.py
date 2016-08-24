@@ -5,9 +5,6 @@
 import os
 import sys
 
-# from .mysql import init_mysql
-
-
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
 CREATION_ID = 2147486532
@@ -131,22 +128,27 @@ if __name__ == '__main__':
     import_path = '{}/../../'.format(
         os.path.abspath(os.path.dirname(__file__)))
     sys.path.append(import_path)
+
     from stats.models.mysql import init_mysql
+    from script_log import print_log
 
     try:
         hsq_cnx = init_mysql('hsq_ro')
         stats_cnx = init_mysql()
         start_id = get_last_order_id(stats_cnx)
-        print(start_id)
+        print_log('Start at id: {}'.format(start_id))
+
         ids = get_traded_ids(hsq_cnx, start_id)
         dealed_len = len(ids)
+        print_log('Totally {} order to sync...'.format(dealed_len))
+
         for i, oid in enumerate(ids, 1):
-            print('dealing {} / {} ... '.format(i, dealed_len))
             order_info = get_order_detail(hsq_cnx, oid[0])
             for so in order_info:
                 insert_data(stats_cnx, so)
-    except IndexError as e:
-        print('error: {}'.format(e))
+        print_log('Done!')
+    except Exception as e:
+        print_log(e, 'ERROR')
     finally:
         hsq_cnx.close()
         stats_cnx.close()
