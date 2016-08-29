@@ -74,7 +74,7 @@ def signin():
 
                     return redirect(
                         request.args.get(next, url_for('home.index')))
-        except IndexError as e:
+        except Exception as e:
             flash(e)
 
     return render_template('user/signin.html', form=form)
