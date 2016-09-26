@@ -7,82 +7,103 @@ import sys
 
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
-CREATION_ID = 2147486532
 
 
-def get_last_order_id(cnx):
+def get_columns(cnx):
+    sql = 'select * from hsq_order_unshipped limit 1'
+    cursor = cnx.cursor()
+    cursor.execute(sql)
+    cols = [i[0] for i in cursor.description]
+    cursor.close()
+    return cols
+
+
+def truncate_stats(cnx):
+    sql = 'truncate table hsq_order_unshipped'
+
+    cursor = cnx.cursor()
+    cursor.execute(sql)
+    cnx.commit()
+    cursor.close()
+
+
+def get_unshipped_order_ids(cnx):
+    # get total
     sql = '''
-            select order_id
-            from hsq_order_dealed
-            order by order_id desc
-            limit 1;
+            select o.id, so.id
+            from trade_sub_order so
+            inner join trade_order o on so.order_id=o.id
+            where so.status=2
+            and so.created_at<(unix_timestamp(now()) - 3600*24)
+            and o.delivery_time is null
+            order by o.id asc
           '''
 
     cursor = cnx.cursor()
     cursor.execute(sql)
-    ids = cursor.fetchall()
+    total_ids = cursor.fetchall()
+
+    if total_ids:
+        # get refund
+        min_oid = total_ids[0][0]
+
+        refund_ids = []
+        sql = '''
+                select order_id, sub_order_id
+                from trade_refund_order
+                where refund_status in (2, 3)
+                and order_id>={}
+              '''.format(min_oid)
+
+        cursor = cnx.cursor()
+        cursor.execute(sql)
+        refund_ids = cursor.fetchall()
+        refund_oids = []
+        refund_soids = []
+        for idrow in refund_ids:
+            if idrow[1] is None:
+                if idrow[0] not in refund_oids:
+                    refund_oids.append(idrow[0])
+            else:
+                if idrow[1] not in refund_soids:
+                    refund_soids.append(idrow[1])
+
+        # exclude refund
+        soids = []
+        for idrow in total_ids:
+            if idrow[0] not in refund_oids\
+              and idrow[1] not in refund_soids:
+                soids.append(idrow[1])
+
     cursor.close()
-
-    if ids:
-        return ids[0][0]
-    else:
-        return CREATION_ID
+    return soids
 
 
-def get_traded_ids(cnx, start_id):
-    ids = []
-    sql = '''
-            select id
-            from trade_order
-            where status in (2, 3, 5, 6, 7)
-            and id > {start_id}
-          '''.format(start_id=start_id)
+def get_order_detail(cnx, soids):
+    for i, soid in enumerate(soids, 0):
+        soids[i] = str(soid)
 
-    cursor = cnx.cursor()
-    cursor.execute(sql)
-    ids = cursor.fetchall()
-    cursor.close()
-
-    return ids
-
-
-def get_order_detail(cnx, oid):
     data = []
     sql = '''
-            select  o.id order_id,
-                    from_unixtime(o.created_at) order_at,
-                    o.pay_id pay_id,
-                    m.id merchant_id,
-                    m.name merchant,
-                    tso.sku_id sku_id,
-                    tso.sku_name sku,
-                    tso.amount sku_amount,
-                    tso.total_price sku_total,
-                    tso.discount_price sku_discount,
-                    o.delivery_price order_delivery_price,
-                    o.consignee consignee,
-                    o.consignee_phone consignee_phone,
-                    o.delivery_province provice,
-                    o.delivery_city city,
-                    o.delivery_detail_address address,
-                    if(c.id, c.id, 0) coupon_id,
-                    c.title coupon,
-                    u.id user_id,
-                    u.username username,
-                    u.mobile mobile,
-                    from_unixtime(u.created_at) register_at,
-                    ul.register_channel channel,
-                    ul.invite_user_id invite_user_id,
-                    ul.last_login_ip last_login_ip
-              from  trade_order o
-        inner join  merchant m on m.id=o.merchant_id
-        inner join  trade_sub_order tso on o.id=tso.order_id
-         left join  trade_order_coupon toc on toc.order_id=o.id
-         left join  coupon c on c.id=toc.coupon_id
-        inner join  user u on u.id=o.user_id
-        inner join  user_login_info ul on u.id=ul.user_id
-             where  o.id={oid}
-    '''.format(oid=oid)
+            select so.id so_id,
+                   o.id o_id,
+                   so.sku_id sku_id,
+                   so.sku_name sku,
+                   m.name merchant,
+                   m.contacter contacter,
+                   m.contacter_phone tel,
+                   if (so.created_at<(unix_timestamp(now())
+                    - 3600*24*2), 1, 0) above_2days,
+                   o.`consignee` consignee,
+                   o.consignee_phone consignee_tel,
+                   o.delivery_province province,
+                   o.delivery_city city,
+                   from_unixtime(so.created_at) created_at
+            from trade_sub_order so
+            inner join trade_order o on so.order_id=o.id
+            inner join merchant m on m.id=o.merchant_id
+            where so.id in ({})
+    '''.format(', '.join(soids))
 
     cursor = cnx.cursor()
     cursor.execute(sql)
@@ -92,7 +113,11 @@ def get_order_detail(cnx, oid):
     return data
 
 
-def insert_data(cnx, data):
+def insert_data(cnx, cols, data):
+    # deal col
+    ins_col = '({})'.format(','.join(cols[1:]))
+
+    # deal data to be inserted
     escape_chars = ('\\', '"', "'")
     dealed_data = []
     for d in data:
@@ -105,17 +130,12 @@ def insert_data(cnx, data):
                     sd = sd.replace(ec, '\{}'.format(ec))
             dealed_data.append('"{}"'.format(sd))
 
+    dealed_data.append('now()')
     ins_val = '({})'.format(','.join(dealed_data))
     sql = '''
-            insert into hsq_order_dealed
-            (order_id, order_at, pay_id, merchant_id, merchant,
-            sku_id, sku, sku_amount, sku_total, sku_discount,
-            order_delivery_price, consignee, consignee_phone,
-            province, city, address, coupon_id, coupon, user_id,
-            username, mobile, register_at, channel, invite_user_id,
-            last_login_ip)
-            values {}
-          '''.format(ins_val)
+            insert into hsq_order_unshipped
+            {cols} values {vals}
+          '''.format(cols=ins_col, vals=ins_val)
 
     # print(sql)
     cursor = cnx.cursor()
@@ -133,21 +153,28 @@ if __name__ == '__main__':
     from script_log import print_log
 
     try:
+        print_log('starting get mysql connection...')
         hsq_cnx = init_mysql('hsq_ro')
         stats_cnx = init_mysql()
 
         # 获取所有未处理订单
-
-        # 获取已退款订单
+        print_log('start dealing unshipped orders')
+        to_deal = get_unshipped_order_ids(hsq_cnx)
+        to_insert = get_order_detail(hsq_cnx, to_deal)
+        print_log('{} unshipped orders found'.format(len(to_insert)))
 
         # 清空数据库
+        print_log('start truncating and inserting data')
+        truncate_stats(stats_cnx)
 
-        # 排除已退款订单后插入数据库
-
-        # 纪录更新时间
+        # 插入数据库
+        cols = get_columns(stats_cnx)
+        for i, data in enumerate(to_insert, 1):
+            print_log('inserting recorder {}/{}'.format(i, len(to_insert)))
+            insert_data(stats_cnx, cols, data)
 
         print_log('Done!')
-    except Exception as e:
+    except IndexError as e:
         print_log(e, 'ERROR')
     finally:
         hsq_cnx.close()

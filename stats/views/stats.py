@@ -107,6 +107,9 @@ def query(tag):
                 f_code = 'select * from ({})t where '.format(q.code)
                 clauses = []
                 for f in q.filters:
+                    if f['id'] in filter_query.keys():
+                        filter_query[f['id']] = \
+                            str(filter_query[f['id']]).strip()
                     if f['type'] == 'str' and f['id'] in filter_query.keys():
                         clauses.append('{field} like "%{value}%"'.format(
                             field=f['name'], value=filter_query[f['id']]))
