@@ -171,7 +171,7 @@ if __name__ == '__main__':
         # 插入数据库
         cols = get_columns(stats_cnx)
         for i, data in enumerate(to_insert, 1):
-            print_log('inserting recorder {}/{}'.format(i, len(to_insert)))
+            # print_log('inserting recorder {}/{}'.format(i, len(to_insert)))
             insert_data(stats_cnx, cols, data)
 
         print_log('Done!')
