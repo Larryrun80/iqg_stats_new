@@ -89,6 +89,7 @@ def get_order_detail(cnx, soids):
                    o.id o_id,
                    so.sku_id sku_id,
                    so.sku_name sku,
+                   m.id merchant_id,
                    m.name merchant,
                    m.contacter contacter,
                    m.contacter_phone tel,
