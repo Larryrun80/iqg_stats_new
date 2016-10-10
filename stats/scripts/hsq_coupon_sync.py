@@ -116,6 +116,7 @@ if __name__ == '__main__':
         print_log('Start at id: {}'.format(start_id))
 
         coupons = get_new_coupons(hsq_cnx, start_id)
+        print_log('{} coupons to sync'.format(len(coupons)))
         coupons = update_created_time(hsq_cnx, coupons)
 
         for coupon in coupons:
