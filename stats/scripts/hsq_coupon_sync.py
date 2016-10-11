@@ -73,6 +73,21 @@ def update_created_time(cnx, coupons):
     return coupons
 
 
+def update_reward(cnx, coupons):
+    cursor = cnx.cursor()
+    for coupon in coupons:
+        sql = '''
+                select title
+                from   reward
+                where  id={}
+              '''.format(coupon[0])
+        cursor.execute(sql)
+        coupon.append(cursor.fetchall()[0][0])
+
+    cursor.close()
+    return coupons
+
+
 def insert_data(cnx, data):
     escape_chars = ('\\', '"', "'")
     dealed_data = []
@@ -90,7 +105,7 @@ def insert_data(cnx, data):
     ins_val = '({})'.format(','.join(dealed_data))
     sql = '''
             insert into hsq_coupon_management
-            (reward_id, coupon_id, title, created_at, sync_at)
+            (reward_id, coupon_id, title, reward, created_at, sync_at)
             values {}
           '''.format(ins_val)
 
@@ -117,6 +132,7 @@ if __name__ == '__main__':
 
         coupons = get_new_coupons(hsq_cnx, start_id)
         print_log('{} coupons to sync'.format(len(coupons)))
+        coupons = update_reward(hsq_cnx, coupons)
         coupons = update_created_time(hsq_cnx, coupons)
 
         for coupon in coupons:
