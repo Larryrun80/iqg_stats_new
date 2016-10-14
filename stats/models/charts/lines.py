@@ -68,6 +68,8 @@ class LineItem(StatsBase):
                                                           randint(0, 255))
             if line['source'] == 'iqg_mongo':
                 line['data'] = self.get_line_mongo_result(line)
+            elif line['source'] in ('', 'iqg_ro', 'hsq_ro'):
+                line['data'] = self.get_line_mysql_result(line)
             else:
                 raise self.AppError('UNKNOWN_SOURCE', source=self.source)
         return self.lines
@@ -77,5 +79,14 @@ class LineItem(StatsBase):
         for x in self.x_axis_value:
             code = line['code'].replace('{x_value}', '"{}"'.format(x))
             result.append(self.get_mongo_result_count(line['source'], code))
+
+        return result
+
+    def get_line_mysql_result(self, line):
+        result = []
+        for x in self.x_axis_value:
+            code = line['code'].replace('{x_value}', '"{}"'.format(x))
+            print(code)
+            result.append(self.get_mysql_result_count(line['source'], code))
 
         return result
