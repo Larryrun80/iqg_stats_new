@@ -43,9 +43,10 @@ class LineItem(StatsBase):
         if not self.x_axis_value:
             if self.x_axis and isinstance(self.x_axis, dict)\
                and 'type' in self.x_axis.keys():
+                duration = self.x_axis.get('duration', 30)
                 if self.x_axis['type'] == 'date':
                     today = arrow.now('Asia/Shanghai')
-                    start = today.replace(days=-30)
+                    start = today.replace(days=-duration)
                     end = today.replace(days=-1)
                     xs = []
                     for r in arrow.Arrow.range('day', start, end):
