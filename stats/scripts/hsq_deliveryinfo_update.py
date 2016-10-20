@@ -43,6 +43,7 @@ def get_orders_to_update(cnx, start_time):
             from        `trade_order` o
             inner join  delivery_message dm on o.id=dm.order_id
             where       dm.updated_at>{start_time}
+            and         o.status in (2, 3, 5, 6, 7, 8, 9)
     '''.format(start_time=start_time)
 
     cursor = cnx.cursor()
