@@ -131,16 +131,16 @@ if __name__ == '__main__':
         print_log('{} orders to sync'.format(len(orders)))
 
         # analyze and refill the order list
-        for o in orders:
+        for i, o in enumerate(orders, 1):
             o = list(o)
             o[5] = json.dumps(json.loads(o[5]), ensure_ascii=False)
-            print_log('dealing order {}'.format(o[0]))
+            print_log('dealing {} / {}'.format(i, len(orders)))
             time_list = list(get_times_from_msg(o[5], o[2]))
             o = o + time_list
 
             # update status
             update_order(stats_cnx, o)
-    except d as e:
+    except Exception as e:
         print_log(e, 'ERROR')
     finally:
         if 'hsq_cnx' in locals().keys() and hsq_cnx:
