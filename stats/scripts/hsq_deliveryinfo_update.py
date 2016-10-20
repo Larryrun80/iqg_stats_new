@@ -43,7 +43,6 @@ def get_orders_to_update(cnx, start_time):
             from        `trade_order` o
             inner join  delivery_message dm on o.id=dm.order_id
             where       dm.updated_at>{start_time}
-            limit       100
     '''.format(start_time=start_time)
 
     cursor = cnx.cursor()
