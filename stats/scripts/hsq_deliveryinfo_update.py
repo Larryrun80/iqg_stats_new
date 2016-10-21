@@ -79,7 +79,7 @@ def update_order(cnx, data):
     escape_chars = ('\\', '"', "'")
     dealed_data = []
     for d in data:
-        if not d:
+        if d is None:
             dealed_data.append('null')
         elif isinstance(d, int):
             dealed_data.append(str(d))
