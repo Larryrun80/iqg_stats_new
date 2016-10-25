@@ -39,7 +39,8 @@ def get_orders_to_update(cnx, start_time):
                         dm.delivery_com_name,
                         dm.delivery_no,
                         dm.msg,
-                        dm.updated_at
+                        dm.updated_at,
+                        from_unixtime(o.created_at)
             from        `trade_order` o
             inner join  delivery_message dm on o.id=dm.order_id
             where       dm.updated_at>{start_time}
@@ -74,7 +75,8 @@ def get_times_from_msg(msg, delivery_status):
 def update_order(cnx, data):
     ins_cols = ('order_id', 'order_status', 'delivery_status',
                 'delivery_company', 'delivery_no', 'delivery_message',
-                'updated_at', 'package_time', 'delivery_time', 'finish_time')
+                'updated_at', 'order_time', 'package_time', 'delivery_time',
+                'finish_time')
 
     escape_chars = ('\\', '"', "'")
     dealed_data = []
