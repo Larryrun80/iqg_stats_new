@@ -34,6 +34,8 @@ def get_last_timestamp(cnx):
 def get_orders_to_update(cnx, start_time):
     sql = '''
             select      o.id,
+                        m.id,
+                        m.name,
                         o.status order_status,
                         dm.status delivery_status,
                         dm.delivery_com_name,
@@ -43,6 +45,7 @@ def get_orders_to_update(cnx, start_time):
                         from_unixtime(o.created_at)
             from        `trade_order` o
             inner join  delivery_message dm on o.id=dm.order_id
+            inner join  merchant m on m.id=o.merchant_id
             where       dm.updated_at>{start_time}
             and         o.status in (2, 3, 5, 6, 7, 8, 9)
     '''.format(start_time=start_time)
@@ -73,10 +76,21 @@ def get_times_from_msg(msg, delivery_status):
 
 
 def update_order(cnx, data):
-    ins_cols = ('order_id', 'order_status', 'delivery_status',
-                'delivery_company', 'delivery_no', 'delivery_message',
-                'updated_at', 'order_time', 'package_time', 'delivery_time',
-                'finish_time')
+    ins_cols = (
+                    'order_id',
+                    'merchant_id',
+                    'merchant',
+                    'order_status',
+                    'delivery_status',
+                    'delivery_company',
+                    'delivery_no',
+                    'delivery_message',
+                    'updated_at',
+                    'order_time',
+                    'package_time',
+                    'delivery_time',
+                    'finish_time'
+                )
 
     escape_chars = ('\\', '"', "'")
     dealed_data = []
