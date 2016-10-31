@@ -34,6 +34,8 @@ def get_last_timestamp(cnx):
 def get_orders_to_update(cnx, start_time):
     sql = '''
             select      o.id,
+                        m.id,
+                        m.name,
                         o.status order_status,
                         dm.status delivery_status,
                         dm.delivery_com_name,
@@ -42,7 +44,8 @@ def get_orders_to_update(cnx, start_time):
                         dm.updated_at,
                         from_unixtime(o.created_at)
             from        `trade_order` o
-            inner join  delivery_message dm on o.id=dm.order_id
+            left join   delivery_message dm on o.id=dm.order_id
+            inner join  merchant m on m.id=o.merchant_id
             where       dm.updated_at>{start_time}
             and         o.status in (2, 3, 5, 6, 7, 8, 9)
     '''.format(start_time=start_time)
@@ -73,10 +76,21 @@ def get_times_from_msg(msg, delivery_status):
 
 
 def update_order(cnx, data):
-    ins_cols = ('order_id', 'order_status', 'delivery_status',
-                'delivery_company', 'delivery_no', 'delivery_message',
-                'updated_at', 'order_time', 'package_time', 'delivery_time',
-                'finish_time')
+    ins_cols = (
+                    'order_id',
+                    'merchant_id',
+                    'merchant',
+                    'order_status',
+                    'delivery_status',
+                    'delivery_company',
+                    'delivery_no',
+                    'delivery_message',
+                    'updated_at',
+                    'order_time',
+                    'package_time',
+                    'delivery_time',
+                    'finish_time'
+                )
 
     escape_chars = ('\\', '"', "'")
     dealed_data = []
@@ -134,9 +148,10 @@ if __name__ == '__main__':
 
         # analyze and refill the order list
         for i, o in enumerate(orders, 1):
-            o = list(o)
-            o[5] = json.dumps(json.loads(o[5]), ensure_ascii=False)
             print_log('dealing {} / {}'.format(i, len(orders)))
+            o = list(o)
+            if o[5]:
+                o[5] = json.dumps(json.loads(o[5]), ensure_ascii=False)
             time_list = list(get_times_from_msg(o[5], o[2]))
             o = o + time_list
 
