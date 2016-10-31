@@ -44,7 +44,7 @@ def get_orders_to_update(cnx, start_time):
                         dm.updated_at,
                         from_unixtime(o.created_at)
             from        `trade_order` o
-            inner join  delivery_message dm on o.id=dm.order_id
+            left join   delivery_message dm on o.id=dm.order_id
             inner join  merchant m on m.id=o.merchant_id
             where       dm.updated_at>{start_time}
             and         o.status in (2, 3, 5, 6, 7, 8, 9)
@@ -148,9 +148,10 @@ if __name__ == '__main__':
 
         # analyze and refill the order list
         for i, o in enumerate(orders, 1):
-            o = list(o)
-            o[5] = json.dumps(json.loads(o[5]), ensure_ascii=False)
             print_log('dealing {} / {}'.format(i, len(orders)))
+            o = list(o)
+            if o[5]:
+                o[5] = json.dumps(json.loads(o[5]), ensure_ascii=False)
             time_list = list(get_times_from_msg(o[5], o[2]))
             o = o + time_list
 
