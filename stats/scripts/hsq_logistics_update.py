@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Filename: hsq_delivery_update.py
+# Filename: hsq_logistics_update.py
 
 import json
 import os
@@ -10,14 +10,29 @@ import arrow
 
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
-DELIVERY_STATUS_NEEDS_UPDATE = (0, 1, 2, 5, 6)
 DEFAULT_LAST_TIMESTAMP = 0
+LOGISTICS_COLUMNS = (
+    'order_id',
+    'pay_id',
+    'order_status',
+    'merchant_id',
+    'delivery_status',
+    'delivery_company',
+    'delivery_no',
+    'order_at',
+    'updated_at',
+    'message',
+    'package_duration',
+    'pickup_duration',
+    'delivery_duration',
+    'status',
+)
 
 
 def get_last_timestamp(cnx):
     sql = '''
             select max(updated_at)
-            from hsq_delivery_info
+            from hsq_logistics
     '''
 
     cursor = cnx.cursor()
@@ -34,21 +49,23 @@ def get_last_timestamp(cnx):
 def get_orders_to_update(cnx, start_time):
     sql = '''
             select      o.id,
-                        m.id,
-                        m.name,
+                        o.pay_id,
                         o.status order_status,
+                        m.id,
                         dm.status delivery_status,
                         dm.delivery_com_name,
                         dm.delivery_no,
-                        dm.msg,
+                        from_unixtime(o.created_at),
                         dm.updated_at,
-                        from_unixtime(o.created_at)
+                        from_unixtime(o.delivery_time),
+                        dm.msg
             from        `trade_order` o
             left join   delivery_message dm on o.id=dm.order_id
             inner join  merchant m on m.id=o.merchant_id
             where       dm.updated_at>{start_time}
             and         o.status in (2, 3, 5, 6, 7, 8, 9)
     '''.format(start_time=start_time)
+    # update deal_order function if change order of select or add/reduce fields
 
     cursor = cnx.cursor()
     cursor.execute(sql)
@@ -57,41 +74,70 @@ def get_orders_to_update(cnx, start_time):
     return orders
 
 
-def get_times_from_msg(msg, delivery_status):
-    package_time = None
+def deal_order(order):
+    # returns  (msg, package_duration, pickup_duration, delivery_duration)
+    msg = ''
+    if order[-1]:
+        json_msg = json.loads(order[-1])  # msg
+    else:
+        json_msg = None
+    order_time = order[-4]
+    package_time = order[-2]
     delivery_time = None
-    finish_time = None
+    finish_time = json_msg[0]['time']
+    package_duration = None
+    pickup_duration = None
+    delivery_duration = None
 
-    if msg:
-        jmsg = json.loads(msg)
-        if jmsg:
-            package_time = jmsg[-1]['time']
+    # deal message
+    if json_msg:
+        for i in range(1, len(json_msg)+1):
+            op_time = json_msg[-i]['time']
+            if i == 1:
+                op_time = package_time
+            if i == 2:
+                delivery_time = op_time
+            tm = '[{time}] {msg}'.format(time=op_time,
+                                         msg=json_msg[-i]['context'])
+            msg += '{}\r\n'.format(tm)
 
-        if len(jmsg) > 1:
-            delivery_time = jmsg[-2]['time']
-            if delivery_status == 3:
-                finish_time = jmsg[0]['time']
+    # deal duartions
+    if package_time:
+        package_duration = arrow.get(package_time).timestamp - \
+            arrow.get(order_time).timestamp
+    else:
+        package_duration = arrow.now('asia/shanghai').timestamp - \
+            arrow.get(order_time).timestamp
 
-    return (package_time, delivery_time, finish_time)
+    if delivery_time:
+        pickup_duration = arrow.get(delivery_time).timestamp - \
+            arrow.get(package_time).timestamp
+    elif package_time:
+        pickup_duration = arrow.now('asia/shanghai').timestamp - \
+            arrow.get(package_time).timestamp
+
+    if order[4] == 3:  # signed
+        delivery_duration = arrow.get(finish_time).timestamp - \
+            arrow.get(order_time).timestamp
+    elif delivery_time:
+        delivery_duration = arrow.now('asia/shanghai').timestamp - \
+            arrow.get(order_time).timestamp
+
+    # status
+    status = 0
+    if order[4] == 1:
+        status = 10
+    if order[4] in (0, 5):
+        status = 20
+    if order[4] == 3:
+        status = 30
+    if order[4] in (2, 4, 6):
+        status = 40
+    return order[0:9] + (msg,  package_duration,
+                         pickup_duration, delivery_duration, status)
 
 
 def update_order(cnx, data):
-    ins_cols = (
-                    'order_id',
-                    'merchant_id',
-                    'merchant',
-                    'order_status',
-                    'delivery_status',
-                    'delivery_company',
-                    'delivery_no',
-                    'delivery_message',
-                    'updated_at',
-                    'order_time',
-                    'package_time',
-                    'delivery_time',
-                    'finish_time'
-                )
-
     escape_chars = ('\\', '"', "'")
     dealed_data = []
     for d in data:
@@ -106,15 +152,15 @@ def update_order(cnx, data):
                     sd = sd.replace(ec, '\{}'.format(ec))
             dealed_data.append('"{}"'.format(sd))
 
-    ins_col_val = '({})'.format(','.join(ins_cols))
+    ins_col_val = '({})'.format(','.join(LOGISTICS_COLUMNS))
     ins_val = '({})'.format(','.join(dealed_data))
     upd_tmp = []
-    for i in range(1, len(ins_cols)):
-        upd_tmp.append('{}={}'.format(ins_cols[i], dealed_data[i]))
+    for i in range(1, len(LOGISTICS_COLUMNS)):
+        upd_tmp.append('{}={}'.format(LOGISTICS_COLUMNS[i], dealed_data[i]))
     upd_val = '{}'.format(','.join(upd_tmp))
 
     sql = '''
-            insert into hsq_delivery_info
+            insert into hsq_logistics
             {ins_col} values {ins_val}
             on duplicate key update {upd_val}
     '''.format(ins_col=ins_col_val, ins_val=ins_val, upd_val=upd_val)
@@ -149,14 +195,11 @@ if __name__ == '__main__':
         # analyze and refill the order list
         for i, o in enumerate(orders, 1):
             print_log('dealing {} / {}'.format(i, len(orders)))
-            o = list(o)
-            if o[7]:
-                o[7] = json.dumps(json.loads(o[7]), ensure_ascii=False)
-            time_list = list(get_times_from_msg(o[7], o[2]))
-            o = o + time_list
+            do = deal_order(o)
+            # print(do)
 
             # update status
-            update_order(stats_cnx, o)
+            update_order(stats_cnx, do)
     except Exception as e:
         print_log(e, 'ERROR')
     finally:
