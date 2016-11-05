@@ -11,6 +11,7 @@ import arrow
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
 DEFAULT_LAST_TIMESTAMP = 0
+TZ = 'Asia/Shanghai'
 LOGISTICS_COLUMNS = (
     'order_id',
     'pay_id',
@@ -26,6 +27,7 @@ LOGISTICS_COLUMNS = (
     'pickup_duration',
     'delivery_duration',
     'status',
+    'dealed_at',
 )
 
 
@@ -62,7 +64,7 @@ def get_orders_to_update(cnx, start_time):
             from        `trade_order` o
             left join   delivery_message dm on o.id=dm.order_id
             inner join  merchant m on m.id=o.merchant_id
-            where       dm.updated_at>{start_time}
+            where       (dm.updated_at>{start_time} or dm.updated_at is null)
             and         o.status in (2, 3, 5, 6, 7, 8, 9)
     '''.format(start_time=start_time)
     # update deal_order function if change order of select or add/reduce fields
@@ -84,13 +86,14 @@ def deal_order(order):
     order_time = order[-4]
     package_time = order[-2]
     delivery_time = None
-    finish_time = json_msg[0]['time']
+    finish_time = None
     package_duration = None
     pickup_duration = None
     delivery_duration = None
 
     # deal message
     if json_msg:
+        finish_time = json_msg[0]['time']
         for i in range(1, len(json_msg)+1):
             op_time = json_msg[-i]['time']
             if i == 1:
@@ -103,25 +106,28 @@ def deal_order(order):
 
     # deal duartions
     if package_time:
-        package_duration = arrow.get(package_time).timestamp - \
-            arrow.get(order_time).timestamp
+        package_duration = \
+            arrow.get(package_time).replace(tzinfo=TZ).timestamp - \
+            arrow.get(order_time).replace(tzinfo=TZ).timestamp
     else:
-        package_duration = arrow.now('asia/shanghai').timestamp - \
-            arrow.get(order_time).timestamp
+        package_duration = arrow.now().timestamp - \
+            arrow.get(order_time).replace(tzinfo=TZ).timestamp
 
     if delivery_time:
-        pickup_duration = arrow.get(delivery_time).timestamp - \
-            arrow.get(package_time).timestamp
+        pickup_duration = \
+            arrow.get(delivery_time).replace(tzinfo=TZ).timestamp - \
+            arrow.get(package_time).replace(tzinfo=TZ).timestamp
     elif package_time:
-        pickup_duration = arrow.now('asia/shanghai').timestamp - \
-            arrow.get(package_time).timestamp
+        pickup_duration = arrow.now().timestamp - \
+            arrow.get(package_time).replace(tzinfo=TZ).timestamp
 
     if order[4] == 3:  # signed
-        delivery_duration = arrow.get(finish_time).timestamp - \
-            arrow.get(order_time).timestamp
+        delivery_duration = \
+            arrow.get(finish_time).replace(tzinfo=TZ).timestamp - \
+            arrow.get(order_time).replace(tzinfo=TZ).timestamp
     elif delivery_time:
-        delivery_duration = arrow.now('asia/shanghai').timestamp - \
-            arrow.get(order_time).timestamp
+        delivery_duration = arrow.now().timestamp - \
+            arrow.get(order_time).replace(tzinfo=TZ).timestamp
 
     # status
     status = 0
@@ -134,7 +140,8 @@ def deal_order(order):
     if order[4] in (2, 4, 6):
         status = 40
     return order[0:9] + (msg,  package_duration,
-                         pickup_duration, delivery_duration, status)
+                         pickup_duration, delivery_duration,
+                         status, arrow.now(TZ).format('YYYY-MM-DD HH:mm:ss'))
 
 
 def update_order(cnx, data):
@@ -200,7 +207,7 @@ if __name__ == '__main__':
 
             # update status
             update_order(stats_cnx, do)
-    except Exception as e:
+    except InterruptedError as e:
         print_log(e, 'ERROR')
     finally:
         if 'hsq_cnx' in locals().keys() and hsq_cnx:
