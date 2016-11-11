@@ -7,7 +7,8 @@ import sys
 
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
-SYNC_TABLES = ('user', 'trade_order', 'merchant', 'sku_promotion')
+SYNC_TABLES = ('user', 'trade_order', 'merchant',
+               'sku_promotion', 'trade_sub_order')
 
 
 def get_columns(cnx, table_name):
