@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Filename: hsq_dealed_order.py
-# use hsq_logistics now
 
 import os
 import sys

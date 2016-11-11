@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Filename: hsq_delivery_update.py
+# use hsq_logistics now
 
 import json
 import os
