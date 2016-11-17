@@ -225,7 +225,7 @@ def update_orders_not_updated(stats_cnx, hsqro_cnx, start_time):
         hsqro_cursor.execute(sql_status)
         sub_orders = hsqro_cursor.fetchall()
         for so in sub_orders:
-            if so[0] not in (5, 6, 7):  # refund status of sub order
+            if so[0] not in (4, 5, 6, 7):  # refund status of sub order
                 is_refund = False
 
         # if refund order, update status
