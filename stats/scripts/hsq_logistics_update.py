@@ -211,13 +211,14 @@ def update_orders_not_updated(stats_cnx, hsqro_cnx, start_time):
     orders = stats_cursor.fetchall()
 
     # update order status, see if refunded
+    print_log('{} not updated orders to deal'.format(len(orders)))
     sql = '''
             select  status
             from    trade_sub_order
             where   order_id={}
     '''
     for i, o in enumerate(orders, 1):
-        print_log('dealing not updated {} / {}'.format(i, len(orders)))
+        # print_log('dealing not updated {} / {}'.format(i, len(orders)))
         is_refund = True
         order_id = o[0]
         order_status = o[1]
@@ -289,7 +290,7 @@ if __name__ == '__main__':
 
         # analyze and refill the order list
         for i, o in enumerate(orders, 1):
-            print_log('dealing {} / {}'.format(i, len(orders)))
+            # print_log('dealing {} / {}'.format(i, len(orders)))
             do = deal_order(o)
             # print(do)
 
@@ -298,6 +299,8 @@ if __name__ == '__main__':
 
         # deal orders hadn't updated and hadn't completed
         update_orders_not_updated(stats_cnx, hsq_cnx, start_time)
+
+        print_log('done.')
     except Exception as e:
         print_log(e, 'ERROR')
     finally:
