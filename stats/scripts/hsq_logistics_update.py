@@ -23,9 +23,13 @@ LOGISTICS_COLUMNS = (
     'order_at',
     'updated_at',
     'message',
+    'package_time',
     'package_duration',
+    'pickup_time',
     'pickup_duration',
+    'finish_time',
     'delivery_duration',
+    'total_duration',
     'status',
     'dealed_at',
 )
@@ -90,6 +94,7 @@ def deal_order(order):
     package_duration = None
     pickup_duration = None
     delivery_duration = None
+    total_duration = None
 
     # deal message
     if json_msg:
@@ -131,17 +136,29 @@ def deal_order(order):
 
     # status
     status = 0
+    total_duration = package_duration
+
     if order[4] == 1:
         status = 10
+        total_duration = package_duration + pickup_duration
     if order[4] in (0, 5):
         status = 20
+        total_duration = package_duration + pickup_duration + delivery_duration
     if order[4] == 3:
         status = 30
+        total_duration = package_duration + pickup_duration + delivery_duration
     if order[4] in (2, 4, 6):
         status = 40
-    return order[0:9] + (msg,  package_duration,
-                         pickup_duration, delivery_duration,
-                         status, arrow.now(TZ).format('YYYY-MM-DD HH:mm:ss'))
+    return order[0:9] + (msg,
+                         package_time,
+                         package_duration,
+                         delivery_time,
+                         pickup_duration,
+                         finish_time,
+                         delivery_duration,
+                         total_duration,
+                         status,
+                         arrow.now(TZ).format('YYYY-MM-DD HH:mm:ss'))
 
 
 def update_order(cnx, data):
@@ -179,6 +196,76 @@ def update_order(cnx, data):
     cursor.close()
 
 
+def update_orders_not_updated(stats_cnx, hsqro_cnx, start_time):
+    # find all unupdated orders
+    sql = '''
+            select  order_id, status
+            from    hsq_logistics
+            where   status in (0, 10, 20)
+            and     dealed_at<='{}'
+    '''.format(start_time)
+
+    stats_cursor = stats_cnx.cursor()
+    hsqro_cursor = hsqro_cnx.cursor()
+    stats_cursor.execute(sql)
+    orders = stats_cursor.fetchall()
+
+    # update order status, see if refunded
+    sql = '''
+            select  status
+            from    trade_sub_order
+            where   order_id={}
+    '''
+    for i, o in enumerate(orders, 1):
+        print_log('dealing not updated {} / {}'.format(i, len(orders)))
+        is_refund = True
+        order_id = o[0]
+        order_status = o[1]
+        sql_status = sql.format(order_id)
+        hsqro_cursor.execute(sql_status)
+        sub_orders = hsqro_cursor.fetchall()
+        for so in sub_orders:
+            if so[0] not in (4, 5, 6, 7):  # refund status of sub order
+                is_refund = False
+
+        # if refund order, update status
+        if is_refund:
+            sql_refund = '''
+                    update  hsq_logistics
+                    set     status=100, order_status=7,dealed_at=now()
+                    where   order_id={oid}
+            '''.format(oid=order_id)
+            # print(sql_refund)
+            stats_cursor.execute(sql_refund)
+            stats_cnx.commit()
+
+        # if not refunded, update durations
+        if not is_refund:
+            u_sql = ''
+            if order_status == 0:
+                u_sql = 'package_duration={}'.format(
+                    'unix_timestamp(now())-unix_timestamp(order_at)')
+            if order_status == 10:
+                u_sql = 'pickup_duration={}'.format(
+                    'unix_timestamp(now())-unix_timestamp(package_time)')
+            if order_status == 20:
+                u_sql = 'delivery_duration={}'.format(
+                    'unix_timestamp(now())-unix_timestamp(order_at)')
+            sql_not_refund = '''
+                    update hsq_logistics set {u_sql},
+                    total_duration=unix_timestamp(now())-unix_timestamp(order_at),
+                    dealed_at=now()
+                    where order_id={oid}
+            '''.format(u_sql=u_sql, oid=order_id)
+
+            # print(sql_not_refund)
+            stats_cursor.execute(sql_not_refund)
+            stats_cnx.commit()
+
+    stats_cursor.close()
+    hsqro_cursor.close()
+
+
 if __name__ == '__main__':
     import_path = '{}/../../'.format(
         os.path.abspath(os.path.dirname(__file__)))
@@ -190,6 +277,7 @@ if __name__ == '__main__':
     try:
         hsq_cnx = init_mysql('hsq_ro')
         stats_cnx = init_mysql()
+        start_time = arrow.now(TZ).format('YYYY-MM-DD HH:mm:ss')
 
         print_log('Start')
         # get orders to update
@@ -207,7 +295,10 @@ if __name__ == '__main__':
 
             # update status
             update_order(stats_cnx, do)
-    except InterruptedError as e:
+
+        # deal orders hadn't updated and hadn't completed
+        update_orders_not_updated(stats_cnx, hsq_cnx, start_time)
+    except Exception as e:
         print_log(e, 'ERROR')
     finally:
         if 'hsq_cnx' in locals().keys() and hsq_cnx:
