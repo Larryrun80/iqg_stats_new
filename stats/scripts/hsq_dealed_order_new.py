@@ -119,7 +119,7 @@ def insert_data(cnx, data):
 
     ins_val = '({})'.format(','.join(dealed_data))
     sql = '''
-            insert into hsq_order_dealed_new
+            insert ignore into hsq_order_dealed_new
             (order_id, order_at, pay_id, merchant_id, merchant,
             sku_id, sku, sku_amount, sku_unit_price, sku_total_price,
             platform_discount, merchant_discount, settlement_price,
