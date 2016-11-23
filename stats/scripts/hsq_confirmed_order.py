@@ -7,7 +7,7 @@ import sys
 
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
-START_CONFIRM_DATE = 1477929600  # timestamp of 2016-11-01
+START_CONFIRM_DATE = 1475251200  # timestamp of 2016-10-01
 
 
 def get_last_confirm_time(cnx):
