@@ -59,6 +59,7 @@ def get_orders(cnx, last_confirm):
          left join  trade_order_coupon toc on toc.order_id=o.id
          left join  sku_promotion sp on sp.sku_id=so.sku_id
              where  o.confirm_time>{confirm_time}
+          order by  o.confirm_time
     '''.format(confirm_time=last_confirm)
 
     cursor = cnx.cursor()
@@ -86,7 +87,7 @@ def insert_data(cnx, cols, data):
 
     ins_val = '({})'.format(','.join(dealed_data))
     sql = '''
-            insert into hsq_order_confirmed {} values {}
+            insert ignore into hsq_order_confirmed {} values {}
           '''.format(cols, ins_val)
 
     # print(sql)
