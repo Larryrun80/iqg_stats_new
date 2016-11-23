@@ -141,7 +141,7 @@ def deal_order(order):
     if order[4] == 1:
         status = 10
         total_duration = package_duration + pickup_duration
-    if order[4] in (0, 5):
+    if delivery_time and order[4] != 3:
         status = 20
         total_duration = package_duration + pickup_duration + delivery_duration
     if order[4] == 3:
