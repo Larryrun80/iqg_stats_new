@@ -52,11 +52,9 @@ def get_orders(cnx, last_confirm):
                     so.platform_discount,
                     so.merchant_discount,
                     sp.settlement_price,
-                    toc.coupon_id,
                     if(o.order_type=3, '0', o.source_type) source
               from  trade_order o
         inner join  trade_sub_order so on o.id=so.order_id
-         left join  trade_order_coupon toc on toc.order_id=o.id
          left join  sku_promotion sp on sp.sku_id=so.sku_id
              where  o.confirm_time>{confirm_time}
           order by  o.confirm_time
