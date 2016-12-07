@@ -23,7 +23,7 @@ def get_last_order_id(cnx):
     if ids[0][0]:  # for there are 1 day payment time
         last_time = ids[0][0] - 86400
         sql = '''
-                select id from hsq_order_dealed_new
+                select order_id from hsq_order_dealed_new
                 where order_at < unix_timestamp({})
                 order by id desc limit 1
         '''.format(last_time)
