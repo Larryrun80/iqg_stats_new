@@ -156,7 +156,7 @@ if __name__ == '__main__':
         print_log('Totally {} order to sync...'.format(dealed_len))
 
         for i, oid in enumerate(ids, 1):
-            print_log('dealing {} / {} ...'.format(i, dealed_len))
+            # print_log('dealing {} / {} ...'.format(i, dealed_len))
             order_info = get_order_detail(hsq_cnx, oid[0])
             for so in order_info:
                 insert_data(stats_cnx, so)
