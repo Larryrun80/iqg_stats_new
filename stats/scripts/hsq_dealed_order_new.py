@@ -7,6 +7,7 @@ import sys
 
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
+PAY_DURATION = 1  # unit: days
 
 
 def get_last_order_id(cnx):
@@ -21,10 +22,10 @@ def get_last_order_id(cnx):
     ids = cursor.fetchall()
 
     if ids[0][0]:  # for there are 1 day payment time
-        last_time = ids[0][0] - 86400
+        last_time = ids[0][0] - 86400 * PAY_DURATION
         sql = '''
                 select order_id from hsq_order_dealed_new
-                where order_at < unix_timestamp({})
+                where order_at < from_unixtime({})
                 order by id desc limit 1
         '''.format(last_time)
 
