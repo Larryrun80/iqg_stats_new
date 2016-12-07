@@ -24,8 +24,8 @@ def get_start_orderid(cnx):
     if ids[0][0]:
         last_time = ids[0][0] - 86400 * PAYMENT_SPAN
         sql = '''
-                select id from hsq_order_dealed_new
-                where order_at < from_unixtime({})
+                select order_id from hsq_order_dealed_new
+                where order_at < unix_timestamp({})
                 order by id desc limit 1
         '''.format(last_time)
 
