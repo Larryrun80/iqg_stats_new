@@ -44,7 +44,7 @@ def get_traded_ids(cnx, start_id):
             select id
             from trade_order
             where status in (2, 3, 5, 6, 7, 8, 9)
-            and created_at > {start_id}
+            and id > {start_id}
           '''.format(start_id=start_id)
 
     cursor = cnx.cursor()
