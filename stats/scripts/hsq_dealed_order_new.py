@@ -7,9 +7,10 @@ import sys
 
 CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
+PAYMENT_SPAN = 1  # unit: days
 
 
-def get_last_order_id(cnx):
+def get_start_orderid(cnx):
     return_id = 0
     cursor = cnx.cursor()
 
@@ -20,11 +21,11 @@ def get_last_order_id(cnx):
     cursor.execute(sql)
     ids = cursor.fetchall()
 
-    if ids[0][0]:  # for there are 1 day payment time
-        last_time = ids[0][0] - 86400
+    if ids[0][0]:
+        last_time = ids[0][0] - 86400 * PAYMENT_SPAN
         sql = '''
                 select id from hsq_order_dealed_new
-                where order_at < unix_timestamp({})
+                where order_at < from_unixtime({})
                 order by id desc limit 1
         '''.format(last_time)
 
@@ -148,7 +149,7 @@ if __name__ == '__main__':
     try:
         hsq_cnx = init_mysql('hsq_ro')
         stats_cnx = init_mysql()
-        start_id = get_last_order_id(stats_cnx)
+        start_id = get_start_orderid(stats_cnx)
         print_log('Start at id: {}'.format(start_id))
 
         ids = get_traded_ids(hsq_cnx, start_id)

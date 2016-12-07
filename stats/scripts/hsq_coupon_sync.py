@@ -40,6 +40,7 @@ def get_new_coupons(cnx, reward_id):
                    coupons_info
             from   reward_rules
             where  reward_id > {reward_id}
+            and    reward_id != 437
           '''.format(reward_id=reward_id)
 
     cursor = cnx.cursor()
