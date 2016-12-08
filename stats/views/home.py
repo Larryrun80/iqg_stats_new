@@ -2,6 +2,7 @@ from flask import (Blueprint,
                    render_template,
                    request,
                    jsonify,
+                   flash,
                    url_for)
 
 home = Blueprint('home', __name__)

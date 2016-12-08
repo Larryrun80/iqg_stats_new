@@ -55,6 +55,16 @@ class AppError(Exception):
     NO_BASE_ID = (500001,
                   'no base ids found when dealing id {itemid}')
 
+    # Request
+    # we suggest you put status_code, text, url,
+    # request method and request header info in info
+    NOT_VALID_RESPONSE = (700001,
+                          'get invlid response, info: {info}')
+
+    # Others
+    SMS_ERROR = (800001,
+                 'sms send failed: {info}')
+
     # DATABASE
     INVALID_QUERY = (900001,
                      'not a valid query: {query}')
