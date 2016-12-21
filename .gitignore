@@ -20,8 +20,8 @@ stats/items/
 
 # tmplog
 logs/
-*/logs/
-*/*.log
+files/
+*.log
 
 # Distribution files
 distribute/
