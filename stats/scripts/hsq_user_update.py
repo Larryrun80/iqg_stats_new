@@ -56,7 +56,7 @@ def update_users(cnx, data):
         '''.format(uid=u[0], ch=u[1], inviter=u[2])
 
         # print(sql)
-        print_log('dealing {} / {}...'.format(i, len(data)))
+        # print_log('dealing {} / {}...'.format(i, len(data)))
         cursor.execute(sql)
 
     cnx.commit()
