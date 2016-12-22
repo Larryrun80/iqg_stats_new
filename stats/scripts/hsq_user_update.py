@@ -9,9 +9,9 @@ CONFIG_HSQ_SECTION = 'HSQ_MYSQL'
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
 
 
-def get_merchants(cnx):
+def get_users(cnx):
     sql = '''
-            select id from hsq_merchant_backup
+            select id from hsq_user_backup where channel is null
           '''
 
     cursor = cnx.cursor()
@@ -22,40 +22,41 @@ def get_merchants(cnx):
     return ids
 
 
-def get_merchant_info(cnx, ids):
-    merchants = []
+def get_channel(cnx, ids):
+    users = []
 
     cursor = cnx.cursor()
-    for m in ids:
-        mid = m[0]
+    for u in ids:
+        uid = u[0]
         sql = '''
-                select  service_rates,
-                        bd_name
-                  from  merchant_ext
-                 where  merchant_id={mid}
-        '''.format(mid=mid)
+                select  register_channel,
+                        invite_user_id
+                  from  user_login_info
+                 where  user_id={uid}
+        '''.format(uid=uid)
 
         cursor.execute(sql)
-        info = cursor.fetchall()
-        if info:
-            merchants.append((mid, info[0][0], info[0][1]))
+        ch = cursor.fetchall()
+        if ch:
+            users.append((uid, ch[0][0], ch[0][1]))
     cursor.close()
 
-    return merchants
+    return users
 
 
-def update_merchant(cnx, data):
+def update_users(cnx, data):
     cursor = cnx.cursor()
 
-    for m in data:
+    for i, u in enumerate(data, 1):
         sql = '''
-            update hsq_merchant_backup
-            set service_rate={rate},
-                bd_name='{bd}'
-            where id={mid}
-        '''.format(mid=m[0], rate=m[1], bd=m[2])
+            update hsq_user_backup
+            set channel='{ch}',
+                inviter={inviter}
+            where id={uid}
+        '''.format(uid=u[0], ch=u[1], inviter=u[2])
 
         # print(sql)
+        print_log('dealing {} / {}...'.format(i, len(data)))
         cursor.execute(sql)
 
     cnx.commit()
@@ -75,15 +76,15 @@ if __name__ == '__main__':
         stats_cnx = init_mysql()
 
         print_log('Start...')
-        merchants = get_merchants(stats_cnx)
+        users = get_users(stats_cnx)
 
-        if merchants:
-            print_log('{} merchants to update'.format(len(merchants)))
-            merchants = get_merchant_info(hsq_cnx, merchants)
-            update_merchant(stats_cnx, merchants)
+        if users:
+            print_log('{} users to update'.format(len(users)))
+            users = get_channel(hsq_cnx, users)
+            update_users(stats_cnx, users)
 
         print_log('Done!')
-    except TabError as e:
+    except Exception as e:
         print_log(e, 'ERROR')
     finally:
         hsq_cnx.close()
