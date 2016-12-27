@@ -46,7 +46,7 @@ def get_daily_fin_data(cnx, start, end):
                       round(o.sku_unit_price/100,2) p,
                       o.sku_amount amount,
                       o.settlement_price sp,
-                      o.platform_discount pd,
+                      round(o.platform_discount/100,2) pd,
                       m.service_rate sr,
                       round(o.order_delivery_price/100,2) dp,
                       o.merchant,
