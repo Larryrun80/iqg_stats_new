@@ -87,10 +87,16 @@ def get_order_detail(cnx, oid):
                     from_unixtime(u.created_at) register_at,
                     ul.register_channel channel,
                     ul.invite_user_id invite_user_id,
-                    ul.last_login_ip last_login_ip
+                    ul.last_login_ip last_login_ip,
+                    pb.cate_ids categories,
+                    oe.guid guid,
+                    oe.device_type device_type
               from  trade_order o
         inner join  merchant m on m.id=o.merchant_id
         inner join  trade_sub_order tso on o.id=tso.order_id
+        inner join  sku_basic sb on tso.sku_id=sb.id
+        inner join  product_basic pb on pb.id=sb.product_id
+        inner join  trade_order_ext oe on oe.order_id=o.id
          left join  trade_order_coupon toc on toc.order_id=o.id
          left join  coupon c on c.id=toc.coupon_id
         inner join  user u on u.id=o.user_id
@@ -128,7 +134,7 @@ def insert_data(cnx, data):
             source, order_delivery_price, consignee, consignee_phone,
             province, city, address, coupon_id, coupon, user_id,
             username, mobile, register_at, channel, invite_user_id,
-            last_login_ip)
+            last_login_ip, categories, guid, device_type)
             values {}
           '''.format(ins_val)
 
