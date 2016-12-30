@@ -56,8 +56,39 @@ def get_traded_ids(cnx, start_id):
     return ids
 
 
+def get_categories(cnx):
+    categories = {}
+    sql = '''
+            select id, name from category
+    '''
+    cursor = cnx.cursor()
+    cursor.execute(sql)
+    cates = cursor.fetchall()
+    cursor.close()
+
+    if cates[0]:
+        for (cid, name) in cates:
+            categories[cid] = name
+
+    return categories
+
+
+def get_category_name(cate_string, categories):
+    cate_ids = str(cate_string).split(',')
+    cate_names = []
+    for cid in cate_ids:
+        cate_names.append(categories[int(cid)])
+
+    return ' | '.join(cate_names)
+
+
 def get_order_detail(cnx, oid):
     data = []
+
+    # we need change category name and used the seq of col
+    # so if you want to change columns here, remeber to check
+    # if the translate category function works
+    # check it before insert_data(stats_cnx, order_info) function
     sql = '''
              select o.id order_id,
                     from_unixtime(o.created_at) order_at,
@@ -102,11 +133,12 @@ def get_order_detail(cnx, oid):
         inner join  user u on u.id=o.user_id
         inner join  user_login_info ul on u.id=ul.user_id
              where  o.id={oid}
+             limit  1000
     '''.format(oid=oid)
 
     cursor = cnx.cursor()
     cursor.execute(sql)
-    data = cursor.fetchall()
+    data = cursor.fetchone()
     cursor.close()
 
     return data
@@ -157,6 +189,7 @@ if __name__ == '__main__':
         hsq_cnx = init_mysql('hsq_ro')
         stats_cnx = init_mysql()
         start_id = get_start_orderid(stats_cnx)
+        categories = get_categories(hsq_cnx)
         print_log('Start at id: {}'.format(start_id))
 
         ids = get_traded_ids(hsq_cnx, start_id)
@@ -164,10 +197,12 @@ if __name__ == '__main__':
         print_log('Totally {} order to sync...'.format(dealed_len))
 
         for i, oid in enumerate(ids, 1):
-            # print_log('dealing {} / {} ...'.format(i, dealed_len))
+            print_log('dealing {} / {} ...'.format(i, dealed_len))
             order_info = get_order_detail(hsq_cnx, oid[0])
-            for so in order_info:
-                insert_data(stats_cnx, so)
+            if order_info:
+                order_info = list(order_info)
+                order_info[-3] = get_category_name(order_info[-3], categories)
+                insert_data(stats_cnx, order_info)
         print_log('Done!')
     except InterruptedError as e:
         print_log(e, 'ERROR')
