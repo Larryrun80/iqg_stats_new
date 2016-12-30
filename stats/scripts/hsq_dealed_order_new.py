@@ -133,7 +133,6 @@ def get_order_detail(cnx, oid):
         inner join  user u on u.id=o.user_id
         inner join  user_login_info ul on u.id=ul.user_id
              where  o.id={oid}
-             limit  1000
     '''.format(oid=oid)
 
     cursor = cnx.cursor()
@@ -197,7 +196,7 @@ if __name__ == '__main__':
         print_log('Totally {} order to sync...'.format(dealed_len))
 
         for i, oid in enumerate(ids, 1):
-            print_log('dealing {} / {} ...'.format(i, dealed_len))
+            # print_log('dealing {} / {} ...'.format(i, dealed_len))
             order_info = get_order_detail(hsq_cnx, oid[0])
             if order_info:
                 order_info = list(order_info)
