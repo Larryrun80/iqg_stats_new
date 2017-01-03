@@ -8,7 +8,7 @@ import sys
 import arrow
 
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
-DEFAULT_START_DATE = '2016-12-01'
+DEFAULT_START_DATE = '2016-01-01'
 
 
 def get_start_date():
@@ -23,7 +23,7 @@ def get_total_cnt(cnx, cnt_date):
         cnt_date: date to get count data, with format YYYY-MM-DD
 
         return:
-        distinct user count 
+        distinct user count
     '''
     sql = '''
             select count(distinct(user_id))
@@ -248,7 +248,7 @@ if __name__ == '__main__':
 
     try:
         stats_cnx = init_mysql()
-        mongo_cnx = init_mongo('HSQ_STATS')
+        mongo_cnx = init_mongo('HSQ_STATS_MONGO')
 
         print_log('Start...')
         start = get_start_date()
