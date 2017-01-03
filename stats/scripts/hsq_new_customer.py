@@ -8,7 +8,7 @@ import sys
 import arrow
 
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
-DEFAULT_START_DATE = '2016-01-01'
+DEFAULT_START_DATE = '2017-01-01'
 
 
 def get_start_date():
