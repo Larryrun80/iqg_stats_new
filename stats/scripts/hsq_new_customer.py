@@ -6,13 +6,22 @@ import os
 import sys
 
 import arrow
+import pymongo
 
 CONFIG_STATS_SECTION = 'STATS_MYSQL'
 DEFAULT_START_DATE = '2017-01-01'
 
 
-def get_start_date():
-    return arrow.get(DEFAULT_START_DATE, 'YYYY-MM-DD')
+def get_start_date(cnx):
+    collection = cnx['hsq_stats']['new_customers']
+    dd = collection.find()\
+                   .sort('timestamp', pymongo.DESCENDING)\
+                   .limit(1)
+
+    if dd.count() == 0:
+        return arrow.get(DEFAULT_START_DATE, 'YYYY-MM-DD')
+    else:
+        return arrow.get(dd[0]['date'], 'YYYY-MM-DD').replace(days=1)
 
 
 def get_total_cnt(cnx, cnt_date):
@@ -251,7 +260,7 @@ if __name__ == '__main__':
         mongo_cnx = init_mongo('HSQ_STATS_MONGO')
 
         print_log('Start...')
-        start = get_start_date()
+        start = get_start_date(mongo_cnx)
         end = arrow.now('Asia/Shanghai').replace(days=-1)
 
         for r in arrow.Arrow.range('day', start, end):
@@ -282,7 +291,7 @@ if __name__ == '__main__':
             coupon_orders = get_app_coupon_orders(orders)
             for c in coupon_orders.keys():
                 app_coupon_data[c] = get_distinct_user_cnt(coupon_orders[c])
-            date_data['app_coupons'] = app_coupon_data 
+            date_data['app_coupons'] = app_coupon_data
 
             # app orders via channel
             app_channel_data = {}
