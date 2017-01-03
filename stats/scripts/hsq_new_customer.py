@@ -231,8 +231,9 @@ def get_app_channel_orders(orders):
 
 
 def write_mongo(cnx, data):
+    db = 'hsq_stats'
     collection = 'new_customers'
-    new_customer_data = cnx[collection]
+    new_customer_data = cnx[db][collection]
     new_customer_data.insert_one(data)
 
 
