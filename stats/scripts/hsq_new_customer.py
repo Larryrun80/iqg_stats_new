@@ -265,7 +265,10 @@ if __name__ == '__main__':
 
         for r in arrow.Arrow.range('day', start, end):
             print_log('dealing date {}'.format(r.format('YYYY-MM-DD')))
-            date_data = {'date': r.format('YYYY-MM-DD')}  # to store results
+            date_data = {
+                'date': r.format('YYYY-MM-DD'),
+                'timestamp': arrow.now('Asia/Shanghai').timestamp,
+            }  # to store results
 
             # get total customer count
             total = get_total_cnt(stats_cnx, r.format('YYYY-MM-DD'))
