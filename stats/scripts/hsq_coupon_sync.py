@@ -50,10 +50,13 @@ def get_new_coupons(cnx, reward_id):
 
     for coupon in coupons:
         if coupon[3]:  # if is_multi_coupons
-            for c in json.loads(coupon[4]):
-                coupon_info.append([coupon[0],
-                                   c['couponId'],
-                                   str(c['couponTitle'])])
+            try:
+                for c in json.loads(coupon[4]):
+                    coupon_info.append([coupon[0],
+                                       c['couponId'],
+                                       str(c['couponTitle'])])
+            except:
+                print_log('reward {} data error, passed'.format(coupon[0]))
         else:
             coupon_info.append([coupon[0], coupon[1], coupon[2]])
     return coupon_info
