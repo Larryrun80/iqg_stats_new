@@ -63,9 +63,12 @@ def get_distinct_user_cnt(orders):
         return:
         user count
     '''
-    users = [u[0] for u in orders]
-    users = set(users)
-    return len(users)
+    if orders:
+        users = [u[0] for u in orders]
+        users = set(users)
+        return len(users)
+    else:
+        return 0
 
 
 def get_normal_orders(cnx, cnt_date):
@@ -84,6 +87,7 @@ def get_normal_orders(cnx, cnt_date):
                     register_at,
                     source,
                     device_type,
+                    coupon_id,
                     coupon,
                     channel,
                     round(if(sp.settlement_price,
@@ -171,72 +175,181 @@ def get_jx_orders(orders):
     return (normal_orders, promotion_orders)
 
 
-def get_app_coupon_orders(orders):
+def get_app_static(cnx, orders):
     ''' get app orders by coupon
 
         arguments:
         orders, format with ([column_names], (selected data))
 
         return:
-        {'coupon1': (orders1), 'coupon2': (orders2)}
+        {
+            'total': xxx,
+            'taobao': xxx,
+            'nature': { channel info },
+            'campaign': { campaign info }
+        }
+        all weishang coupon orders will be gathered to taobao order
+        all orders didn't use coupon or used newbie coupons will in nature
+        all orders used campaign coupon will in campaign
     '''
     if len(orders) != 2:
         raise RuntimeError('Invalid order info passed')
 
-    return_data = {}
+    return_data = {
+        'total': 0,
+        'taobao': 0,
+        'nature': {},
+        'campaign': {}
+    }
+
+    taobao_channel = '微商'
+    nature_reward_ids = (0, 1, 441)
+
     source_column = 'source'
     coupon_column = 'coupon'
+    couponid_column = 'coupon_id'
+    channel_column = 'channel'
     source_seq = 0
+    couponid_seq = 0
     coupon_seq = 0
+    channel_seq = 0
     for i, cn in enumerate(orders[0], 0):
         if cn == source_column:
             source_seq = i
 
+        if cn == couponid_column:
+            couponid_seq = i
+
         if cn == coupon_column:
             coupon_seq = i
 
-    for row in orders[1]:
-        if row[source_seq] == 1:
-            if row[coupon_seq] not in return_data.keys():
-                return_data[row[coupon_seq]] = [row]
-            else:
-                return_data[row[coupon_seq]] += [row]
+        if cn == channel_column:
+            channel_seq = i
 
-    return return_data
+    # add reward infos to orders
+    tmp_orders = []
 
-
-def get_app_channel_orders(orders):
-    ''' get app orders by channel
-
-        arguments:
-        orders, format with ([column_names], (selected data))
-
-        return:
-        {'channel1': (orders1), 'channel2': (orders2)}
+    sql = '''
+            select reward_id, channel, maintainer
+            from hsq_coupon_management
+            where coupon_id={}
     '''
-    if len(orders) != 2:
-        raise RuntimeError('Invalid order info passed')
 
-    return_data = {}
-    source_column = 'source'
-    coupon_column = 'channel'
-    source_seq = 0
-    coupon_seq = 0
-    for i, cn in enumerate(orders[0], 0):
-        if cn == source_column:
-            source_seq = i
-
-        if cn == coupon_column:
-            coupon_seq = i
-
+    cursor = cnx.cursor()
     for row in orders[1]:
         if row[source_seq] == 1:
-            if row[coupon_seq] not in return_data.keys():
-                return_data[row[coupon_seq]] = [row]
+            if row[couponid_seq] != 0:
+                c_sql = sql.format(row[couponid_seq])
+                cursor.execute(c_sql)
+                c_info = cursor.fetchone()
+                if c_info:
+                    append = list(c_info)
+                    tmp_orders.append(list(row) + append)
+                else:
+                    tmp_orders.append(list(row) + [-1, 'unknown', 'unknown'])
             else:
-                return_data[row[coupon_seq]] += [row]
+                tmp_orders.append(list(row) + [0, None, None])
+    cursor.close()
+
+    return_data['total'] = get_distinct_user_cnt(orders[1])
+
+    taobao_orders = [row for row in tmp_orders
+                     if row[-2] == taobao_channel]
+    return_data['taobao'] = get_distinct_user_cnt(taobao_orders)
+
+    nature_orders = [row for row in tmp_orders
+                     if row[-3] in nature_reward_ids]
+    channel_orders = {}
+    for row in nature_orders:
+        if row[channel_seq] not in channel_orders.keys():
+            channel_orders[row[channel_seq]] = [row]
+        else:
+            channel_orders[row[channel_seq]] += [row]
+    for k, v in channel_orders.items():
+        return_data['nature'][k] = get_distinct_user_cnt(v)
+
+    campaign_orders = [row for row in tmp_orders
+                       if (row[-3] not in nature_reward_ids and
+                           row[-2] != taobao_channel)]
+    cc_orders = {}
+    for row in campaign_orders:
+        if row[coupon_seq] not in cc_orders.keys():
+            cc_orders[coupon_seq] = [row]
+        else:
+            cc_orders[coupon_seq] += [row]
+    for k, v in cc_orders.items():
+        return_data['campaign']['{ch} - {cp}'.format(v[0][-2], k)] = \
+            get_distinct_user_cnt(v)
 
     return return_data
+
+
+# def get_app_coupon_orders(orders):
+#     ''' get app orders by coupon
+
+#         arguments:
+#         orders, format with ([column_names], (selected data))
+
+#         return:
+#         {'coupon1': (orders1), 'coupon2': (orders2)}
+#     '''
+#     if len(orders) != 2:
+#         raise RuntimeError('Invalid order info passed')
+
+#     return_data = {}
+#     source_column = 'source'
+#     coupon_column = 'coupon'
+#     source_seq = 0
+#     coupon_seq = 0
+#     for i, cn in enumerate(orders[0], 0):
+#         if cn == source_column:
+#             source_seq = i
+
+#         if cn == coupon_column:
+#             coupon_seq = i
+
+#     for row in orders[1]:
+#         if row[source_seq] == 1:
+#             if row[coupon_seq] not in return_data.keys():
+#                 return_data[row[coupon_seq]] = [row]
+#             else:
+#                 return_data[row[coupon_seq]] += [row]
+
+#     return return_data
+
+
+# def get_app_channel_orders(orders):
+#     ''' get app orders by channel
+
+#         arguments:
+#         orders, format with ([column_names], (selected data))
+
+#         return:
+#         {'channel1': (orders1), 'channel2': (orders2)}
+#     '''
+#     if len(orders) != 2:
+#         raise RuntimeError('Invalid order info passed')
+
+#     return_data = {}
+#     source_column = 'source'
+#     coupon_column = 'channel'
+#     source_seq = 0
+#     coupon_seq = 0
+#     for i, cn in enumerate(orders[0], 0):
+#         if cn == source_column:
+#             source_seq = i
+
+#         if cn == coupon_column:
+#             coupon_seq = i
+
+#     for row in orders[1]:
+#         if row[source_seq] == 1:
+#             if row[coupon_seq] not in return_data.keys():
+#                 return_data[row[coupon_seq]] = [row]
+#             else:
+#                 return_data[row[coupon_seq]] += [row]
+
+#     return return_data
 
 
 def write_mongo(cnx, data):
@@ -261,6 +374,8 @@ if __name__ == '__main__':
 
         print_log('Start...')
         start = get_start_date(mongo_cnx)
+        # start = arrow.get(DEFAULT_START_DATE, 'YYYY-MM-DD')
+
         end = arrow.now('Asia/Shanghai').replace(days=-1)
 
         for r in arrow.Arrow.range('day', start, end):
@@ -289,19 +404,22 @@ if __name__ == '__main__':
             date_data['jx_normal'] = get_distinct_user_cnt(jx_orders[0])
             date_data['jx_promotion'] = get_distinct_user_cnt(jx_orders[1])
 
-            # app orders via coupon
-            app_coupon_data = {}
-            coupon_orders = get_app_coupon_orders(orders)
-            for c in coupon_orders.keys():
-                app_coupon_data[c] = get_distinct_user_cnt(coupon_orders[c])
-            date_data['app_coupons'] = app_coupon_data
+            # # app orders via coupon
+            # app_coupon_data = {}
+            # coupon_orders = get_app_coupon_orders(orders)
+            # for c in coupon_orders.keys():
+            #     app_coupon_data[c] = get_distinct_user_cnt(coupon_orders[c])
+            # date_data['app_coupons'] = app_coupon_data
 
-            # app orders via channel
-            app_channel_data = {}
-            channel_orders = get_app_channel_orders(orders)
-            for c in channel_orders.keys():
-                app_channel_data[c] = get_distinct_user_cnt(channel_orders[c])
-            date_data['app_channels'] = app_channel_data
+            # # app orders via channel
+            # app_channel_data = {}
+            # channel_orders = get_app_channel_orders(orders)
+            # for c in channel_orders.keys():
+            #     app_channel_data[c] = get_distinct_user_cnt(channel_orders[c])
+            # date_data['app_channels'] = app_channel_data
+
+            # app orders
+            date_data['app'] = get_app_static(stats_cnx, orders)
 
             # write to mongo
             write_mongo(mongo_cnx, date_data)
@@ -311,3 +429,4 @@ if __name__ == '__main__':
         print_log(e, 'ERROR')
     finally:
         stats_cnx.close()
+        mongo_cnx.close()
