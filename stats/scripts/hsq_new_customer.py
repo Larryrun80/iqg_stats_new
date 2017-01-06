@@ -265,6 +265,7 @@ def get_app_static(cnx, orders):
             channel_orders[row[channel_seq]] = [row]
         else:
             channel_orders[row[channel_seq]] += [row]
+    return_data['nature']['total'] = get_distinct_user_cnt(nature_orders)
     for k, v in channel_orders.items():
         return_data['nature'][k] = get_distinct_user_cnt(v)
 
@@ -277,6 +278,7 @@ def get_app_static(cnx, orders):
             cc_orders[coupon_seq] = [row]
         else:
             cc_orders[coupon_seq] += [row]
+    return_data['campaign']['total'] = get_distinct_user_cnt(campaign_orders)
     for k, v in cc_orders.items():
         return_data['campaign']['{} - {}'.format(v[0][-2], k)] = \
             get_distinct_user_cnt(v)
