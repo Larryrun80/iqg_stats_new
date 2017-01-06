@@ -275,9 +275,9 @@ def get_app_static(cnx, orders):
     cc_orders = {}
     for row in campaign_orders:
         if row[coupon_seq] not in cc_orders.keys():
-            cc_orders[coupon_seq] = [row]
+            cc_orders[row[coupon_seq]] = [row]
         else:
-            cc_orders[coupon_seq] += [row]
+            cc_orders[row[coupon_seq]] += [row]
     return_data['campaign']['total'] = get_distinct_user_cnt(campaign_orders)
     for k, v in cc_orders.items():
         return_data['campaign']['{} - {}'.format(v[0][-2], k)] = \
