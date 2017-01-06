@@ -278,7 +278,7 @@ def get_app_static(cnx, orders):
         else:
             cc_orders[coupon_seq] += [row]
     for k, v in cc_orders.items():
-        return_data['campaign']['{ch} - {cp}'.format(v[0][-2], k)] = \
+        return_data['campaign']['{} - {}'.format(v[0][-2], k)] = \
             get_distinct_user_cnt(v)
 
     return return_data
