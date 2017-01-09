@@ -25,6 +25,7 @@ ERROR_LOG = 'logs/error.log'
 # stats path
 QUERY_PATH = 'items/query.yaml'
 LINE_PATH = 'items/charts/lines.yaml'
+HIGH_LINE_PATH = 'items/charts/highlines.yaml'
 PERIOD_PATH = 'items/period.yaml'
 FUNNEL_PATH = 'items/funnel.yaml'
 CHANNEL_FUNNEL_PATH = 'items/derivative/channelfunnel.yaml'

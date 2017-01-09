@@ -197,6 +197,34 @@ def line(tag):
     return render_template('stats/charts/lines.html', data=data)
 
 
+@bp_stats.route('/highline/<tag>', methods=['GET', 'POST'])
+def highline(tag):
+    from ..models.charts.highlines import HighLineItem
+    l = HighLineItem(tag)
+    if not l.title:
+        abort(404)
+
+    data = {
+        'title': l.title,
+        'route': l.route,
+        'author': l.author['author'],
+        'email': l.author['email'],
+    }
+
+    if current_user:
+        user = current_user
+        if user.id:
+            data['is_favourite'] = user.is_favourite(request.path)
+
+    if request.method == 'POST':
+        lines = l.get_result()
+        data['labels'] = l.x_axis_value
+        data['lines'] = lines
+        data['y_axis'] = l.y_axis
+
+    return render_template('stats/charts/highlines.html', data=data)
+
+
 @bp_stats.route('/period/<tag>', methods=['GET', 'POST'])
 def period(tag):
     from ..models.periodic import PeriodicItem

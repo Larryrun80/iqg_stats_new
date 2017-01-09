@@ -1,0 +1,100 @@
+{% extends "stats/stats_framework.html" %}
+{% block title %} highlines {% endblock %}
+{% block stats %} 
+<form method=post action="{{ url_for('stats.highline', tag=data['route']) }}">
+    <button type="submit" id="myButton" data-loading-text="Loading..." class="btn btn-primary" autocomplete="off">
+        加载数据
+    </button>
+</form>
+<script>
+  $('#myButton').on('click', function () {
+    var $btn = $(this).button('loading')
+  })
+</script>
+    <div id="larry_hl" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    {% if data['lines'] %}
+    <script src="{{ url_for('static', filename='js/vendor/highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/exporting.js') }}"></script>
+    <script>
+        $(function () {
+            Highcharts.chart('larry_hl', {
+                chart: {
+                    type: 'line'
+                },
+                title: {
+                    text: "{{ data['title'] }}"
+                },
+                subtitle: {
+                    text: "Authored by {{ data['author'] }}"
+                },
+                xAxis: {
+                    categories: {{ data['labels'] | safe }}
+                },
+                // yAxis: [
+                //     {
+                //         title: {
+                //             text: '1',
+                //         },
+                //         max: 100000
+                //     },
+                //     {
+                //         title: {
+                //             text: '2',
+                //         },
+                //         opposite: true,
+                //         min: 0,
+                //         max: 100
+                //     }
+                // ],
+                yAxis: [
+                    {% for yaxis in data['y_axis'] %}
+                    {
+                        title: {
+                            text: "{{ yaxis['title'] }}",
+                        },
+                        {% if 'opposite' in yaxis.keys() and yaxis['opposite'] %}
+                            opposite: true,
+                        {% endif %}
+                        {% if 'attrs' in yaxis.keys() %}
+                            {% for k in yaxis['attrs'].keys() %}
+                                {{ k | safe }}: {{ yaxis['attrs'][k] | safe }},
+                            {% endfor %}
+                        {% endif %}
+                    }, 
+                    {% endfor %}
+                ],
+                plotOptions: {
+                    line: {
+                        dataLabels: {
+                            enabled: true
+                        },
+                        enableMouseTracking: true
+                    }
+                },
+                tooltip: {
+                    shared: true
+                },
+                series: [
+                    {% for line in data['lines'] %}
+                    {
+                    name: "{{ line['label'] }}",
+                    data: {{ line['data'] }},
+                    yAxis: {{ line['yaxis'] }},
+                }, 
+                    {% endfor %}
+                ]
+                // series: [
+                //     {
+                //         name: "毛利总额",
+                //         data:  [28674.2, 37860.6, 43629.4, 37831.5, 39783.6, 31721.4, -2863.04, 21877.8, 36729.6, 53133.3, 64077.2, 55899.4, 54272.2, 55875.3, 54116.2]
+                // }, {
+                //         name: "毛利率",
+                //         yAxis: 1,
+                //         data:   [10.82, 10.45, 9.91, 9.26, 9.74, 9.6, -1.02, 7.95, 9.42, 9.25, 9.69, 9.83, 10.05, 9.8, 9.92]
+                // },
+                // ]
+            });
+        });
+    </script>
+    {% endif %}
+{% endblock %}
