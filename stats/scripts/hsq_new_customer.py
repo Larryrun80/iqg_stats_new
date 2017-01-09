@@ -54,7 +54,7 @@ def get_total_cnt(cnx, cnt_date):
     return user_cnt[0]
 
 
-def get_distinct_user_cnt(orders):
+def get_distinct_users(orders):
     ''' receive an order table (result of select sql) and return distinct user cnt
 
         arguments:
@@ -65,10 +65,9 @@ def get_distinct_user_cnt(orders):
     '''
     if orders:
         users = [u[0] for u in orders]
-        users = set(users)
-        return len(users)
+        return set(users)
     else:
-        return 0
+        return set()
 
 
 def get_normal_orders(cnx, cnt_date):
@@ -115,7 +114,7 @@ def get_normal_orders(cnx, cnt_date):
     return (columns, orders)
 
 
-def get_group_orders(orders):
+def get_group_statics(orders, dealed_users):
     ''' get all normal group orders
 
         arguments:
@@ -127,25 +126,39 @@ def get_group_orders(orders):
     if len(orders) != 2:
         raise RuntimeError('Invalid order info passed')
 
-    source_column = 'source'
-    profit_column = 'profit'
-    source_seq = 0
-    profit_seq = 0
-    for i, cn in enumerate(orders[0], 0):
-        if cn == source_column:
-            source_seq = i
+    return_data = {}
+    cols_seq = {
+                    'user_id': 0,
+                    'source': 0,
+                    'profit': 0,
+    }
 
-        if cn == profit_column:
-            profit_seq = i
+    for i, cn in enumerate(orders[0], 0):
+        for col in cols_seq:
+            if col == cn:
+                cols_seq[col] = i
+
+    promotion_orders = [row for row in orders[1]
+                        if (row[cols_seq['source']] == 0 and
+                            row[cols_seq['profit']] < 0 and
+                            row[cols_seq['user_id']] not in dealed_users)]
+    p_users = get_distinct_users(promotion_orders)
+    dealed_users = dealed_users | p_users
 
     normal_orders = [row for row in orders[1]
-                     if (row[source_seq] == 0 and row[profit_seq] >= 0)]
-    promotion_orders = [row for row in orders[1]
-                        if (row[source_seq] == 0 and row[profit_seq] < 0)]
-    return (normal_orders, promotion_orders)
+                     if (row[cols_seq['source']] == 0 and
+                         row[cols_seq['profit']] >= 0 and
+                         row[cols_seq['user_id']] not in dealed_users)]
+    n_users = get_distinct_users(normal_orders)
+    dealed_users = dealed_users | n_users
+
+    return_data['group_normal'] = len(n_users)
+    return_data['group_promotion'] = len(p_users)
+    return_data['total'] = len(n_users | p_users)
+    return (return_data, dealed_users)
 
 
-def get_jx_orders(orders):
+def get_jx_statics(orders, dealed_users):
     ''' get all normal jingxuan orders
 
         arguments:
@@ -157,25 +170,39 @@ def get_jx_orders(orders):
     if len(orders) != 2:
         raise RuntimeError('Invalid order info passed')
 
-    source_column = 'source'
-    profit_column = 'profit'
-    source_seq = 0
-    profit_seq = 0
-    for i, cn in enumerate(orders[0], 0):
-        if cn == source_column:
-            source_seq = i
+    return_data = {}
+    cols_seq = {
+                    'user_id': 0,
+                    'source': 0,
+                    'profit': 0,
+    }
 
-        if cn == profit_column:
-            profit_seq = i
+    for i, cn in enumerate(orders[0], 0):
+        for col in cols_seq:
+            if col == cn:
+                cols_seq[col] = i
+
+    promotion_orders = [row for row in orders[1]
+                        if (row[cols_seq['source']] == 2 and
+                            row[cols_seq['profit']] < 0 and
+                            row[cols_seq['user_id']] not in dealed_users)]
+    p_users = get_distinct_users(promotion_orders)
+    dealed_users = dealed_users | p_users
 
     normal_orders = [row for row in orders[1]
-                     if (row[source_seq] == 2 and row[profit_seq] >= 0)]
-    promotion_orders = [row for row in orders[1]
-                        if (row[source_seq] == 2 and row[profit_seq] < 0)]
-    return (normal_orders, promotion_orders)
+                     if (row[cols_seq['source']] == 2 and
+                         row[cols_seq['profit']] >= 0 and
+                         row[cols_seq['user_id']] not in dealed_users)]
+    n_users = get_distinct_users(normal_orders)
+    dealed_users = dealed_users | n_users
+
+    return_data['jx_normal'] = len(n_users)
+    return_data['jx_promotion'] = len(p_users)
+    return_data['total'] = len(n_users | p_users)
+    return (return_data, dealed_users)
 
 
-def get_app_static(cnx, orders):
+def get_app_static(cnx, orders, dealed_users):
     ''' get app orders by coupon
 
         arguments:
@@ -205,26 +232,18 @@ def get_app_static(cnx, orders):
     taobao_channel = '微商'
     nature_reward_ids = (0, 1, 441)
 
-    source_column = 'source'
-    coupon_column = 'coupon'
-    couponid_column = 'coupon_id'
-    channel_column = 'channel'
-    source_seq = 0
-    couponid_seq = 0
-    coupon_seq = 0
-    channel_seq = 0
+    cols_seq = {
+                'user_id':  0,
+                'source': 0,
+                'coupon': 0,
+                'coupon_id': 0,
+                'channel': 0,
+    }
+
     for i, cn in enumerate(orders[0], 0):
-        if cn == source_column:
-            source_seq = i
-
-        if cn == couponid_column:
-            couponid_seq = i
-
-        if cn == coupon_column:
-            coupon_seq = i
-
-        if cn == channel_column:
-            channel_seq = i
+        for col in cols_seq.keys():
+            if cn == col:
+                cols_seq[col] = i
 
     # add reward infos to orders
     tmp_orders = []
@@ -237,9 +256,9 @@ def get_app_static(cnx, orders):
 
     cursor = cnx.cursor()
     for row in orders[1]:
-        if row[source_seq] == 1:
-            if row[couponid_seq] != 0:
-                c_sql = sql.format(row[couponid_seq])
+        if row[cols_seq['source']] == 1:
+            if row[cols_seq['coupon_id']] != 0:
+                c_sql = sql.format(row[cols_seq['coupon_id']])
                 cursor.execute(c_sql)
                 c_info = cursor.fetchone()
                 if c_info:
@@ -251,37 +270,47 @@ def get_app_static(cnx, orders):
                 tmp_orders.append(list(row) + [0, None, None])
     cursor.close()
 
-    return_data['total'] = get_distinct_user_cnt(orders[1])
+    return_data['total'] = len(get_distinct_users(tmp_orders))
 
     taobao_orders = [row for row in tmp_orders
                      if row[-2] == taobao_channel]
-    return_data['taobao'] = get_distinct_user_cnt(taobao_orders)
+    dealed_users = get_distinct_users(taobao_orders)
+    return_data['taobao'] = len(dealed_users)
 
+    # nature orders
     nature_orders = [row for row in tmp_orders
-                     if row[-3] in nature_reward_ids]
+                     if (row[-3] in nature_reward_ids and
+                         row[cols_seq['user_id']] not in dealed_users)]
     channel_orders = {}
     for row in nature_orders:
-        if row[channel_seq] not in channel_orders.keys():
-            channel_orders[row[channel_seq]] = [row]
+        if row[cols_seq['channel']] not in channel_orders.keys():
+            channel_orders[row[cols_seq['channel']]] = [row]
         else:
-            channel_orders[row[channel_seq]] += [row]
-    return_data['nature']['total'] = get_distinct_user_cnt(nature_orders)
-    for k, v in channel_orders.items():
-        return_data['nature'][k] = get_distinct_user_cnt(v)
+            channel_orders[row[cols_seq['channel']]] += [row]
 
+    nature_users = get_distinct_users(nature_orders)
+    dealed_users = dealed_users | nature_users
+    return_data['nature']['total'] = len(nature_users)
+    for k, v in channel_orders.items():
+        return_data['nature'][k] = len(get_distinct_users(v))
+
+    # campaign_orders
     campaign_orders = [row for row in tmp_orders
                        if (row[-3] not in nature_reward_ids and
-                           row[-2] != taobao_channel)]
+                           row[-2] != taobao_channel and
+                           row[cols_seq['user_id']] not in dealed_users)]
     cc_orders = {}
     for row in campaign_orders:
-        if row[coupon_seq] not in cc_orders.keys():
-            cc_orders[row[coupon_seq]] = [row]
+        if row[cols_seq['coupon']] not in cc_orders.keys():
+            cc_orders[row[cols_seq['coupon']]] = [row]
         else:
-            cc_orders[row[coupon_seq]] += [row]
-    return_data['campaign']['total'] = get_distinct_user_cnt(campaign_orders)
+            cc_orders[row[cols_seq['coupon']]] += [row]
+    campaign_users = get_distinct_users(campaign_orders)
+    dealed_users = dealed_users | campaign_users
+    return_data['campaign']['total'] = len(campaign_users)
     for k, v in cc_orders.items():
         return_data['campaign']['{} - {}'.format(v[0][-2], k)] = \
-            get_distinct_user_cnt(v)
+           len(get_distinct_users(v))
 
     return return_data
 
@@ -373,6 +402,7 @@ if __name__ == '__main__':
     try:
         stats_cnx = init_mysql()
         mongo_cnx = init_mongo('HSQ_STATS_MONGO')
+        dealed_users = set()
 
         print_log('Start...')
         start = get_start_date(mongo_cnx)
@@ -393,18 +423,16 @@ if __name__ == '__main__':
 
             # get order list exclude weishang orders
             orders = get_normal_orders(stats_cnx, r.format('YYYY-MM-DD'))
-            date_data['weishang'] = total - get_distinct_user_cnt(orders[1])
+            date_data['weishang'] = total - len(get_distinct_users(orders[1]))
 
             # group orders
-            group_orders = get_group_orders(orders)
-            date_data['group_normal'] = get_distinct_user_cnt(group_orders[0])
-            date_data['group_promotion'] = \
-                get_distinct_user_cnt(group_orders[1])
+            (group_statics, dealed_users) = get_group_statics(
+                                                orders, dealed_users)
+            date_data['group'] = group_statics
 
             # jingxuan orders
-            jx_orders = get_jx_orders(orders)
-            date_data['jx_normal'] = get_distinct_user_cnt(jx_orders[0])
-            date_data['jx_promotion'] = get_distinct_user_cnt(jx_orders[1])
+            (jx_statics, dealed_users) = get_jx_statics(orders, dealed_users)
+            date_data['jx'] = jx_statics
 
             # # app orders via coupon
             # app_coupon_data = {}
@@ -421,7 +449,7 @@ if __name__ == '__main__':
             # date_data['app_channels'] = app_channel_data
 
             # app orders
-            date_data['app'] = get_app_static(stats_cnx, orders)
+            date_data['app'] = get_app_static(stats_cnx, orders, dealed_users)
 
             # write to mongo
             write_mongo(mongo_cnx, date_data)
