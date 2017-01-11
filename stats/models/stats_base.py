@@ -75,7 +75,9 @@ class StatsBase(object):
             cnt = 0
             with cnx.cursor() as cursor:
                 cursor.execute(sql)
-                cnt = cursor.fetchone()[0]
+                r = cursor.fetchone()
+                if r:
+                    cnt = r[0]
         except:
             raise AppError('SQL_ERROR', sql=sql)
 

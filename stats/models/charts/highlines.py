@@ -71,7 +71,6 @@ class HighLineItem(StatsBase):
         result = []
         for x in self.x_axis_value:
             code = line['code'].replace('{x_value}', '"{}"'.format(x))
-            print(code)
             result.append(self.get_mysql_result_count(line['source'], code))
 
         return result
