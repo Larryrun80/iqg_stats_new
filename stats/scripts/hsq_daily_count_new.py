@@ -83,7 +83,7 @@ def get_daily_fin_data(cnx, start, end, daily_data):
             f_data = cursor.fetchone()
 
             if f_data[0]:
-                daily_data[p] += list(f_data)
+                daily_data[p] += [i if i else 0 for i in f_data]
                 get_data = True
 
         if not get_data:
@@ -204,14 +204,14 @@ def add_total(cnx, start, end, daily_data):
     '''
 
     total = []
-    for key in daily_data:
+    for key in daily_data.keys():
         if not total:
-            total = daily_data[key]
+            total = [i for i in daily_data[key]]
         else:
             for i in range(len(total)):
                 total[i] += daily_data[key][i]
         # registration_cnt value
-        daily_data += [0]
+        daily_data[key] += [0]
 
     cursor = cnx.cursor()
     # get registeration
@@ -242,13 +242,13 @@ def insert_daily_data(cnx, data):
         return true if success and raise exception if fail
     '''
     sql = '''
-            insert into hsq_daily_statistic
+            insert into hsq_daily_statistic_new
             (`date`, `platform`, `uv`, `active_uv`, `gmv`, `gross_profit`,
              `net_profit`, `order_cnt`, `customer_normal_cnt`,
              `customer_ws_cnt`, `new_customer_normal_cnt`,
              `new_customer_ws_cnt`, `registration_cnt`, `sync_at`)
             values
-            (%s, %s, %s, %s, %s, %s, %s, %s, now())
+            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
     '''
 
     cursor = cnx.cursor()
@@ -291,17 +291,21 @@ if __name__ == '__main__':
 
             start = r.format('YYYY-MM-DD')
             end = r.replace(days=1).format('YYYY-MM-DD')
+            print_log('start dealing date ()'.format(start))
             daily_data = get_daily_uv_data(office_mongo_cnx, start, daily_data)
+            print_log('  - uv data got')
             daily_data = get_daily_fin_data(stats_cnx, start, end, daily_data)
+            print_log('  - fin data got')
             daily_data = get_daily_user_data(stats_cnx, start, end, daily_data)
-            # daily_data = add_total(daily_data)
+            print_log('  - user data got')
+            daily_data = add_total(stats_cnx, start, end, daily_data)
+            print_log('  - total done')
 
             for k in daily_data.keys():
-                stats_data.append([r.format('YYYY-MM-DD'), k] + daily_data[k])
+                stats_data.append([r.format('YYYY-MM-DD'), k] +
+                                  [float(i) for i in daily_data[k]])
 
-        print_log('{} dates to be deal'.format(len(daily_data)))
-
-        # insert_daily_data(stats_cnx, stats_data)
+        insert_daily_data(stats_cnx, stats_data)
 
         print_log('Done!')
     except Exception as e:
