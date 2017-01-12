@@ -21,14 +21,21 @@ def init_mongo(tag=''):
         elif conf_param.upper() in app.config.keys():
             db_conf[param] = app.config[conf_param.upper()]
         else:
-            raise AppError('MISSING_PARAM', param=conf_param)
+            if param not in ('user', 'passwd'):
+                raise AppError('MISSING_PARAM', param=conf_param)
     if 'port' in db_conf.keys():
         db_conf['port'] = int(db_conf['port'])
 
-    db_str = 'mongodb://{0}:{1}@{2}:{3}/{4}'.format(db_conf['user'],
-                                                    db_conf['passwd'],
-                                                    db_conf['host'],
-                                                    db_conf['port'],
-                                                    db_conf['db'])
+    if 'user' in db_conf.keys():
+        db_str = 'mongodb://{0}:{1}@{2}:{3}/{4}'.format(db_conf['user'],
+                                                        db_conf['passwd'],
+                                                        db_conf['host'],
+                                                        db_conf['port'],
+                                                        db_conf['db'])
+    else:
+        db_str = 'mongodb://{0}:{1}/{2}'.format(db_conf['host'],
+                                                db_conf['port'],
+                                                db_conf['db'])
+    print(db_str)
     cnx = MongoClient(db_str)
     return cnx
