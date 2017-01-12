@@ -116,8 +116,8 @@ def get_daily_user_data(cnx, start, end, daily_data):
 
     # condition indicate this order belongs to normal user
     ws_condition = {
-        'normal': ' and (mobile="" or mobile!=consignee_phone) ',
-        'ws': 'and mobile=consignee_phone',
+       'normal': ' and (mobile="" or mobile=consignee_phone) ',
+       'ws': 'and (mobile!="" and mobile!=consignee_phone)',
     }
 
     sql = '''
