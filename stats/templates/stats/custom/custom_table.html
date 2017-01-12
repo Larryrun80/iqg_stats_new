@@ -1,0 +1,27 @@
+{% extends "stats/stats_framework.html" %}
+{% block title %} custom table {% endblock %}
+{% block stats %} 
+
+{% if data %}
+<table class="table table-hover">
+<thead>
+{% for row in data['head'] %}
+    <tr>
+        {% for col in row %}
+            <th>{{ col }}</th>
+        {% endfor %}
+    </tr>
+{% endfor %}
+</thead>
+<tbody>
+{% for row in data['body'] %}
+    <tr>
+        {% for col in row %}
+            <td> {{ col }} </td>
+        {% endfor %}
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endblock %}

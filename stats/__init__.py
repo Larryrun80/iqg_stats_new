@@ -89,12 +89,14 @@ from .views.user import bp_user
 from .views.stats import bp_stats
 from .views.assistance import bp_ass
 from .views.kits import kits
+from .views.custom_stats import cs
 
 app.register_blueprint(home)
 app.register_blueprint(bp_user, url_prefix='/account')
 app.register_blueprint(bp_stats, url_prefix='/data')
 app.register_blueprint(bp_ass, url_prefix='/assistance')
 app.register_blueprint(kits, url_prefix='/kits')
+app.register_blueprint(cs, url_prefix='/cs')
 
 # error page
 @app.errorhandler(404)
