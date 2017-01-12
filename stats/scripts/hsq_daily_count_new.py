@@ -291,7 +291,7 @@ if __name__ == '__main__':
 
             start = r.format('YYYY-MM-DD')
             end = r.replace(days=1).format('YYYY-MM-DD')
-            print_log('start dealing date ()'.format(start))
+            print_log('start dealing date {}'.format(start))
             daily_data = get_daily_uv_data(office_mongo_cnx, start, daily_data)
             print_log('  - uv data got')
             daily_data = get_daily_fin_data(stats_cnx, start, end, daily_data)
