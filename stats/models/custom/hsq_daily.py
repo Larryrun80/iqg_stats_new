@@ -21,7 +21,7 @@ class HsqDaily(StatsBase):
                     round((customer_normal_cnt+customer_ws_cnt)/
                     active_uv*100,2) 下单转化,
                     new_customer_normal_cnt+new_customer_ws_cnt 新客,
-                    gmv, order_cnt 订单数, 
+                    gmv, order_cnt 订单数,
                     if(order_cnt>0,round(gmv/order_cnt,2),0) 客单,
                     gross_profit 营收, net_profit 利润
                     from hsq_daily_statistic_new
@@ -75,7 +75,7 @@ class HsqDaily(StatsBase):
 
                 if l7d != 0:
                     ratio_row.append('{} %'.format(
-                        round(yd - l7d / l7d, 2)))
+                        round((yd - l7d) / l7d, 2)))
                 else:
                     ratio_row.append('-')
 
@@ -90,6 +90,11 @@ class HsqDaily(StatsBase):
                 last7d_data = list(last7d_data)
                 last7d_data[0] = last7d_data[0].replace(p, name[p])
                 ratio_row[0] = ratio_row[0].replace(p, name[p])
+
+            percent_cols = (3,)
+            for pc in percent_cols:
+                yesterday_data[pc] = '{} %'.format(yesterday_data[pc])
+                last7d_data[pc] = '{} %'.format(last7d_data[pc])
 
             table_data.append(yesterday_data)
             table_data.append(last7d_data)
