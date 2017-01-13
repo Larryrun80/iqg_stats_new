@@ -76,7 +76,7 @@ class HsqDaily(StatsBase):
 
                 if l7d != 0:
                     ratio_row.append('{} %'.format(
-                        round((yd - l7d) / l7d * 100, 2)))
+                        round((yd - l7d) / abs(l7d) * 100, 2)))
                 else:
                     ratio_row.append('-')
 
