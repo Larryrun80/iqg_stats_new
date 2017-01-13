@@ -19,12 +19,13 @@ class HsqDaily(StatsBase):
                     select concat(platform, ' [{sdate}]') 业务,
                     uv, active_uv 有效UV,
                     customer_normal_cnt+customer_ws_cnt 顾客,
-                    round((customer_normal_cnt+customer_ws_cnt)/
-                    active_uv*100,2) 下单转化,
                     new_customer_normal_cnt+new_customer_ws_cnt 新客,
-                    gmv, order_cnt 订单数,
+                    order_cnt 订单数,
+                    round(order_cnt/active_uv*100,1) 下单转化,
+                    round(gmv,0) gmv,
                     if(order_cnt>0,round(gmv/order_cnt,2),0) 客单,
-                    gross_profit 营收, net_profit 利润
+                    round(gross_profit,0) 营收,
+                    round(net_profit,0) 利润
                     from hsq_daily_statistic_new
                     where `date`='{sdate}'
                     and platform='{platform}'
@@ -41,16 +42,17 @@ class HsqDaily(StatsBase):
 
             # avg of last 7 days
             sql_last7d = '''
-                    select concat(platform, ' [7日均值]'), round(avg(uv),0),
-                    round(avg(active_uv),2),
-                    round(avg(customer_normal_cnt+customer_ws_cnt),2),
-                    round(avg(customer_normal_cnt+customer_ws_cnt)/
-                    avg(active_uv)*100,2),
-                    round(avg(new_customer_normal_cnt+new_customer_ws_cnt),2),
-                    round(avg(gmv),2),
-                    round(avg(order_cnt),2),
+                    select concat(platform, ' [7日均值]'),
+                    round(avg(uv),0),
+                    round(avg(active_uv),0),
+                    round(avg(customer_normal_cnt+customer_ws_cnt),0),
+                    round(avg(new_customer_normal_cnt+new_customer_ws_cnt),0),
+                    round(avg(order_cnt),0),
+                    round(avg(order_cnt)/avg(active_uv)*100,1),
+                    round(avg(gmv),0),
                     if(order_cnt,round(avg(gmv)/avg(order_cnt),2),0),
-                    round(avg(gross_profit),2), round(avg(net_profit),2)
+                    round(avg(gross_profit),0),
+                    round(avg(net_profit),0)
                     from hsq_daily_statistic_new
                     where `date`>'{sdate}'
                     and `date`<'{edate}'
@@ -90,7 +92,7 @@ class HsqDaily(StatsBase):
                 last7d_data[0] = last7d_data[0].replace(p, name[p])
                 ratio_row[0] = ratio_row[0].replace(p, name[p])
 
-            percent_cols = (3,)
+            percent_cols = (6,)
             for pc in percent_cols:
                 yesterday_data[pc] = '{} %'.format(yesterday_data[pc])
                 last7d_data[pc] = '{} %'.format(last7d_data[pc])
