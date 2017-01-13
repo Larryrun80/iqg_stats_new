@@ -36,7 +36,7 @@ class HsqDaily(StatsBase):
                 cols = [data['columns']]
 
             if data['data'][0][0]:
-                yesterday_data = data['data'][0]
+                yesterday_data = list(data['data'][0])
 
             # avg of last 7 days
             sql_last7d = '''
@@ -59,7 +59,7 @@ class HsqDaily(StatsBase):
                        platform=p)
             data = self.get_mysql_result('', sql_last7d)
             if data['data'][0][0]:
-                last7d_data = data['data'][0]
+                last7d_data = list(data['data'][0])
 
             # ratio
             ratio_row = ['{} [增幅]'.format(p), ]
@@ -85,9 +85,7 @@ class HsqDaily(StatsBase):
             }
 
             if p in name.keys():
-                yesterday_data = list(yesterday_data)
                 yesterday_data[0] = yesterday_data[0].replace(p, name[p])
-                last7d_data = list(last7d_data)
                 last7d_data[0] = last7d_data[0].replace(p, name[p])
                 ratio_row[0] = ratio_row[0].replace(p, name[p])
 
