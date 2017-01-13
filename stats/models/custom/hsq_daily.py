@@ -16,7 +16,8 @@ class HsqDaily(StatsBase):
         for p in platforms:
             # 昨日数值
             sql = '''
-                    select concat(platform, ' [昨日]') 业务, uv, active_uv 有效UV,
+                    select concat(platform, ' [{sdate}]') 业务,
+                    uv, active_uv 有效UV,
                     customer_normal_cnt+customer_ws_cnt 顾客,
                     round((customer_normal_cnt+customer_ws_cnt)/
                     active_uv*100,2) 下单转化,
@@ -75,7 +76,7 @@ class HsqDaily(StatsBase):
 
                 if l7d != 0:
                     ratio_row.append('{} %'.format(
-                        round((yd - l7d) / l7d, 2)))
+                        round((yd - l7d) / l7d * 100, 2)))
                 else:
                     ratio_row.append('-')
 
