@@ -21,7 +21,8 @@ class HsqDaily(StatsBase):
                     round((customer_normal_cnt+customer_ws_cnt)/
                     active_uv*100,2) 下单转化,
                     new_customer_normal_cnt+new_customer_ws_cnt 新客,
-                    gmv, order_cnt 订单数, round(gmv/order_cnt,2) 客单,
+                    gmv, order_cnt 订单数, 
+                    if(order_cnt>0,round(gmv/order_cnt,2),0) 客单,
                     gross_profit 营收, net_profit 利润
                     from hsq_daily_statistic_new
                     where `date`='{sdate}'
@@ -46,7 +47,8 @@ class HsqDaily(StatsBase):
                     avg(active_uv)*100,2),
                     round(avg(new_customer_normal_cnt+new_customer_ws_cnt),2),
                     round(avg(gmv),2),
-                    round(avg(order_cnt),2), round(avg(gmv)/avg(order_cnt),2),
+                    round(avg(order_cnt),2),
+                    if(order_cnt,round(avg(gmv)/avg(order_cnt),2),0),
                     round(avg(gross_profit),2), round(avg(net_profit),2)
                     from hsq_daily_statistic_new
                     where `date`>'{sdate}'
