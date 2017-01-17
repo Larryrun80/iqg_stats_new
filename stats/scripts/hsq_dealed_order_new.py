@@ -38,6 +38,24 @@ def get_start_orderid(cnx):
     return return_id
 
 
+def get_last_refund_ts(cnx):
+    return_ts = 1451577600  # 2016-01-01
+    cursor = cnx.cursor()
+
+    sql = '''
+            select unix_timestamp(max(refund_at)) from hsq_order_dealed_new
+    '''
+
+    cursor.execute(sql)
+    ts = cursor.fetchone()
+
+    if ts[0]:  # for there are 1 day payment time
+        return_ts = ts[0]
+
+    cursor.close()
+    return return_ts
+
+
 def get_traded_ids(cnx, start_id):
     ids = []
     sql = '''
@@ -90,7 +108,8 @@ def get_order_detail(cnx, oid):
     # if the translate category function works
     # check it before insert_data(stats_cnx, order_info) function
     sql = '''
-             select o.id order_id,
+             select tso.id sub_order_id
+                    o.id order_id,
                     from_unixtime(o.created_at) order_at,
                     o.pay_id pay_id,
                     m.id merchant_id,
@@ -159,7 +178,7 @@ def insert_data(cnx, data):
     ins_val = '({})'.format(','.join(dealed_data))
     sql = '''
             insert ignore into hsq_order_dealed_new
-            (order_id, order_at, pay_id, merchant_id, merchant,
+            (sub_order_id, order_id, order_at, pay_id, merchant_id, merchant,
             sku_id, sku, sku_amount, sku_unit_price, sku_total_price,
             platform_discount, merchant_discount, settlement_price,
             source, order_delivery_price, consignee, consignee_phone,
@@ -174,6 +193,83 @@ def insert_data(cnx, data):
     cursor.execute(sql)
     cnx.commit()
     cursor.close()
+
+
+def update_pin_status(stats_cnx, hsq_cnx):
+    s_cursor = stats_cnx.cursor()
+    h_cursor = hsq_cnx.cursor()
+
+    # get pin orders whose status needs update
+    sql = '''
+            select order_id
+            from hsq_order_dealed_new
+            where source=0
+            and (pin_status is null or pin_status=1)
+    '''
+    s_cursor.execute(sql)
+    po = s_cursor.fetchall()
+    pin_oids = '({})'.format(','.join(
+        [str(order[0]) for order in po]))
+
+    # get status from hsq
+    sql_get_status = '''
+            select order_id, pin_event_status, pin_event_id
+            from pin_activities_order
+            where order_id in {}
+    '''.format(pin_oids)
+    h_cursor.execute(sql_get_status)
+    s_orders = h_cursor.fetchall()
+
+    # update status
+    sql_update = '''
+            update hsq_order_dealed_new
+            set pin_status={ps}, pin_event_id={peid}
+            where order_id={oid}
+    '''
+    for i, order in enumerate(s_orders, 1):
+        sql_to_update = sql_update.format(ps=order[1], oid=order[0],
+                                          peid=order[2])
+        s_cursor.execute(sql_to_update)
+
+    stats_cnx.commit()
+    s_cursor.close()
+    h_cursor.close()
+
+
+def update_refund_status(stats_cnx, hsq_cnx):
+    s_cursor = stats_cnx.cursor()
+    h_cursor = hsq_cnx.cursor()
+
+    last_refund_time = get_last_refund_ts(stats_cnx)
+    print('refund start from {}'.format(last_refund_time))
+    sql = '''
+            select order_id, sub_order_id, from_unixtime(refunded_time)
+            from trade_refund_order
+            where refunded_time>{}
+    '''.format(last_refund_time)
+    h_cursor.execute(sql)
+    r_orders = h_cursor.fetchall()
+
+    for i, order in enumerate(r_orders, 1):
+        if order[1]:
+            sql = '''
+                    update hsq_order_dealed_new
+                    set refund_at='{rt}'
+                    where sub_order_id={soid}
+            '''.format(rt=order[2],
+                       soid=order[1])
+        else:
+            sql = '''
+                    update hsq_order_dealed_new
+                    set refund_at='{rt}'
+                    where order_id={oid}
+            '''.format(rt=order[2],
+                       oid=order[0])
+        s_cursor.execute(sql)
+
+    stats_cnx.commit()
+    s_cursor.close()
+    h_cursor.close()
 
 
 if __name__ == '__main__':
@@ -191,6 +287,7 @@ if __name__ == '__main__':
         categories = get_categories(hsq_cnx)
         print_log('Start at id: {}'.format(start_id))
 
+        # update all paid orders
         ids = get_traded_ids(hsq_cnx, start_id)
         dealed_len = len(ids)
         print_log('Totally {} order to sync...'.format(dealed_len))
@@ -202,6 +299,13 @@ if __name__ == '__main__':
                 order_info = list(order_info)
                 order_info[-3] = get_category_name(order_info[-3], categories)
                 insert_data(stats_cnx, order_info)
+
+        # update pin orders
+        update_pin_status(stats_cnx, hsq_cnx)
+
+        # update refund
+        update_refund_status(stats_cnx, hsq_cnx)
+
         print_log('Done!')
     except InterruptedError as e:
         print_log(e, 'ERROR')
