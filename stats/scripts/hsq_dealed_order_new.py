@@ -108,7 +108,7 @@ def get_order_detail(cnx, oid):
     # if the translate category function works
     # check it before insert_data(stats_cnx, order_info) function
     sql = '''
-             select tso.id sub_order_id
+             select tso.id sub_order_id,
                     o.id order_id,
                     from_unixtime(o.created_at) order_at,
                     o.pay_id pay_id,
@@ -301,9 +301,11 @@ if __name__ == '__main__':
                 insert_data(stats_cnx, order_info)
 
         # update pin orders
+        print_log("Start update pin orders status")
         update_pin_status(stats_cnx, hsq_cnx)
 
         # update refund
+        print_log("Start update refund orders status")
         update_refund_status(stats_cnx, hsq_cnx)
 
         print_log('Done!')

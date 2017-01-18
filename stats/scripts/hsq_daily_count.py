@@ -60,7 +60,7 @@ def get_daily_fin_data(cnx, start, end):
               left join hsq_merchant_backup m on m.id=o.merchant_id
               where o.order_at>'{start}'
               and o.order_at<'{end}'
-              and o.source!=0
+              and (o.source!=0 or o.pin_status=2)
             ) detail
     '''.format(start=start, end=end)
 
