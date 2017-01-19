@@ -183,16 +183,19 @@ def get_daily_uv_data(cnx, start, daily_data):
                 'app_android': 'android',
                 'app_h5': 'wap'
             }
+    uv_data = {}
 
     for k, v in daily_data_map.items():
         for item in result:
             if item['terminal'] == v:
-                daily_data[k] += [item['totalCnt'], item['validCnt']]
+                uv_data[k] += [item['totalCnt'], item['validCnt']]
                 break
 
     for key in daily_data.keys():
-        if key not in daily_data_map.keys():
+        if key not in uv_data.keys():
             daily_data[key] += [0, 0]
+        else:
+            daily_data[key] += uv_data[key]
 
     return daily_data
 
