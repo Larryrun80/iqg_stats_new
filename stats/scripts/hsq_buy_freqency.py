@@ -79,7 +79,7 @@ def deal_orders(cnx, orders):
                            prefix=m_diff,
                            profit=o[-1],
                            uid=o[0])
-                print(u_sql)
+                # print(u_sql)
                 cursor.execute(u_sql)
         else:  # user not exists
             u_sql = '''
@@ -95,7 +95,7 @@ def deal_orders(cnx, orders):
                        channel=o[-2],
                        o_cnt=1,
                        profit=o[-1])
-            print(u_sql)
+            # print(u_sql)
             cursor.execute(u_sql)
 
     cnx.commit()
