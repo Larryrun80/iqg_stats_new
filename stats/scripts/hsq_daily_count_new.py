@@ -188,7 +188,7 @@ def get_daily_uv_data(cnx, start, daily_data):
     for k, v in daily_data_map.items():
         for item in result:
             if item['terminal'] == v:
-                uv_data[k] += [item['totalCnt'], item['validCnt']]
+                uv_data[k] = [item['totalCnt'], item['validCnt']]
                 break
 
     for key in daily_data.keys():
