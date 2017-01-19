@@ -59,14 +59,14 @@ def deal_orders(cnx, orders):
         o = list(o)
         if o[-1] is None:
             o[-1] = 0
-        order_time = arrow.get(o[2])
+        order_time = arrow.get(o[2], 'Asia/Shanghai')
 
         t_sql = sql.format(o[0])
         cursor.execute(t_sql)
         user = cursor.fetchone()
 
         if user:  # exists
-            first_order_time = arrow.get(user[1])
+            first_order_time = arrow.get(user[1], 'Asia/Shanghai')
             m_diff = get_month_diff(first_order_time, order_time)
             if m_diff < 13:
                 u_sql = '''
