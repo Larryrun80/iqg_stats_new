@@ -25,7 +25,7 @@ def get_last_order_time(cnx):
 
 def get_update_orders(cnx, start_time):
     sql = '''
-            select o.user_id, o.pay_id, unix_timestamp(o.order_at),
+            select o.user_id, o.pay_id, o.order_at,
                    o.register_at, o.channel,
                    sum(round(if(sp.settlement_price,
                                 o.sku_total_price-o.settlement_price,
@@ -48,7 +48,7 @@ def get_update_orders(cnx, start_time):
 
 def deal_orders(cnx, orders):
     sql = '''
-            select user_id, unix_timestamp(first_order_time)
+            select user_id, first_order_time
             from hsq_buy_freqency
             where user_id={}
     '''
