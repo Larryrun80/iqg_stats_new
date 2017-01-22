@@ -129,8 +129,6 @@ def get_order_detail(cnx, oid):
                     o.delivery_province provice,
                     o.delivery_city city,
                     o.delivery_detail_address address,
-                    if(c.id, c.id, 0) coupon_id,
-                    c.title coupon,
                     u.id user_id,
                     u.username username,
                     u.mobile mobile,
@@ -147,8 +145,6 @@ def get_order_detail(cnx, oid):
         inner join  sku_basic sb on tso.sku_id=sb.id
         inner join  product_basic pb on pb.id=sb.product_id
         inner join  trade_order_ext oe on oe.order_id=o.id
-         left join  trade_order_coupon toc on toc.order_id=o.id
-         left join  coupon c on c.id=toc.coupon_id
         inner join  user u on u.id=o.user_id
         inner join  user_login_info ul on u.id=ul.user_id
              where  o.id={oid}
@@ -182,9 +178,11 @@ def insert_data(cnx, data):
             sku_id, sku, sku_amount, sku_unit_price, sku_total_price,
             platform_discount, merchant_discount, settlement_price,
             source, order_delivery_price, consignee, consignee_phone,
-            province, city, address, coupon_id, coupon, user_id,
+            province, city, address, user_id,
             username, mobile, register_at, channel, invite_user_id,
-            last_login_ip, categories, guid, device_type)
+            last_login_ip, categories, guid, device_type,
+            platform_coupon_id, platform_coupon,
+            merchant_coupon_id, merchant_coupon)
             values {}
           '''.format(ins_val)
 
@@ -272,6 +270,70 @@ def update_refund_status(stats_cnx, hsq_cnx):
     h_cursor.close()
 
 
+def get_coupons(cnx, order_id):
+    # with platform_coupon_id, platform_coupon,
+    # merchant_coupon_id, merchant_coupon
+    return_data = [0, None, 0, None]
+    sql = '''
+            select oc.coupon_id, c.title, c.type
+            from `trade_order_coupon` oc
+            inner join coupon c on oc.coupon_id=c.id
+            where oc.order_id={}
+    '''.format(order_id)
+
+    cursor = cnx.cursor()
+    cursor.execute(sql)
+    coupons = cursor.fetchall()
+    cursor.close()
+
+    for c in coupons:
+        if c[-1] and c[-1] == 1:  # platform coupon
+            return_data[0] = c[0]
+            return_data[1] = c[1]
+        elif c[-1] and c[-1] == 2:  # merchant coupon
+            return_data[2] = c[0]
+            return_data[3] = c[1]
+
+    return return_data
+
+
+def update_history_coupons(stats_cnx, hsq_cnx):
+    # get all orders needs to update
+    sql = '''
+            select order_id
+            from hsq_order_dealed_new
+            where (platform_discount>0 and platform_coupon_id=0)
+            or (merchant_discount>0 and merchant_coupon_id=0)
+    '''
+
+    s_cursor = stats_cnx.cursor()
+    s_cursor.execute(sql)
+    orders = s_cursor.fetchall()
+
+    u_sql = '''
+            update hsq_order_dealed_new
+            set platform_coupon_id={pci},
+                platform_coupon='{pc}',
+                merchant_coupon_id={mci},
+                merchant_coupon='{mc}'
+            where order_id={oid}
+    '''
+
+    for i, o in enumerate(orders, 1):
+        print_log('dealing {} /{}'.format(i, len(orders)))
+        coupons = get_coupons(hsq_cnx, o[0])
+        tu_sql = u_sql.format(
+            pci=coupons[0],
+            pc=coupons[1],
+            mci=coupons[2],
+            mc=coupons[3],
+            oid=o[0])
+        s_cursor.execute(tu_sql)
+
+    stats_cnx.commit()
+    s_cursor.close()
+
+
 if __name__ == '__main__':
     import_path = '{}/../../'.format(
         os.path.abspath(os.path.dirname(__file__)))
@@ -283,7 +345,8 @@ if __name__ == '__main__':
     try:
         hsq_cnx = init_mysql('hsq_ro')
         stats_cnx = init_mysql()
-        start_id = get_start_orderid(stats_cnx)
+        start_id = 2148730164  # get_start_orderid(stats_cnx)
+
         categories = get_categories(hsq_cnx)
         print_log('Start at id: {}'.format(start_id))
 
@@ -297,7 +360,11 @@ if __name__ == '__main__':
             order_info = get_order_detail(hsq_cnx, oid[0])
             if order_info:
                 order_info = list(order_info)
+                # add category
                 order_info[-3] = get_category_name(order_info[-3], categories)
+                # add coupon info
+                order_info = order_info + get_coupons(hsq_cnx, oid[0])
+
                 insert_data(stats_cnx, order_info)
 
         # update pin orders
@@ -307,6 +374,7 @@ if __name__ == '__main__':
         # update refund
         print_log("Start update refund orders status")
         update_refund_status(stats_cnx, hsq_cnx)
+        # update_history_coupons(stats_cnx, hsq_cnx)
 
         print_log('Done!')
     except InterruptedError as e:

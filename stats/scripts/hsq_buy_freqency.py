@@ -34,6 +34,7 @@ def get_update_orders(cnx, start_time):
             from hsq_order_dealed_new o
             left join hsq_sku_promotion_backup sp on o.sku_id=sp.sku_id
             left join hsq_merchant_backup m on m.id=o.merchant_id
+            left join hsq_coupon_management c on c.coupon_id=o.coupon_id
             where order_at>'{}'
             group by pay_id
             order by order_id
