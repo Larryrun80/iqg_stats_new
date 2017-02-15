@@ -62,7 +62,7 @@ class HighLineItem(StatsBase):
     def get_line_mongo_result(self, line):
         result = []
         for x in self.x_axis_value:
-            code = line['code'].replace('{x_value}', '"{}"'.format(x))
+            code = line['code'].replace('{x_value}', x)
             result.append(self.get_mongo_result_count(line['source'], code))
 
         return result
@@ -70,7 +70,7 @@ class HighLineItem(StatsBase):
     def get_line_mysql_result(self, line):
         result = []
         for x in self.x_axis_value:
-            code = line['code'].replace('{x_value}', '"{}"'.format(x))
+            code = line['code'].replace('{x_value}', x)
             result.append(self.get_mysql_result_count(line['source'], code))
 
         return result
