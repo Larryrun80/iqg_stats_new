@@ -117,10 +117,10 @@ if __name__ == '__main__':
         print_log('Totally {} orders to deal...'.format(dealed_len))
 
         for i, order in enumerate(data, 1):
-            print_log('dealing {} / {} ...'.format(i, dealed_len))
+            # print_log('dealing {} / {} ...'.format(i, dealed_len))
             insert_data(stats_cnx, ins_cols, order)
         print_log('Done!')
-    except TabError as e:
+    except Exception as e:
         print_log(e, 'ERROR')
     finally:
         hsq_cnx.close()

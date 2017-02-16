@@ -83,7 +83,7 @@ if __name__ == '__main__':
             update_merchant(stats_cnx, merchants)
 
         print_log('Done!')
-    except TabError as e:
+    except Exception as e:
         print_log(e, 'ERROR')
     finally:
         hsq_cnx.close()
