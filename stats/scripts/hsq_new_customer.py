@@ -86,7 +86,7 @@ def get_normal_orders(cnx, cnt_date):
                     register_at,
                     source,
                     device_type,
-                    coupon_id,
+                    platform_coupon_id coupon_id,
                     coupon,
                     channel,
                     round(if(sp.settlement_price,
