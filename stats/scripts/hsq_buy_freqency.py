@@ -34,7 +34,7 @@ def get_update_orders(cnx, start_time):
             from hsq_order_dealed_new o
             left join hsq_sku_promotion_backup sp on o.sku_id=sp.sku_id
             left join hsq_merchant_backup m on m.id=o.merchant_id
-            left join hsq_coupon_management c 
+            left join hsq_coupon_management c
                    on c.coupon_id=o.platform_coupon_id
             where order_at>'{}'
             group by pay_id
@@ -57,7 +57,7 @@ def deal_orders(cnx, orders):
     cursor = cnx.cursor()
 
     for i, o in enumerate(orders, 1):
-        print('dealing {} / {}'.format(i, len(orders)))
+        # print('dealing {} / {}'.format(i, len(orders)))
         o = list(o)
         if o[-1] is None:
             o[-1] = 0
