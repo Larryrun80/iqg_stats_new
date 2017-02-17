@@ -107,7 +107,7 @@ def get_daily_user_data(cnx, start, end, daily_data):
 
     platforms_condition = {
         'group_app': ' and source=0 and pin_status=2 and device_type in (1,2)',
-        'group_wx': ' and source=0 and pin_status=2 device_type=3 ',
+        'group_wx': ' and source=0 and pin_status=2 and device_type=3 ',
         'jx': ' and source=2 ',
         'app_iOS': ' and source=1 and device_type=2 ',
         'app_android': ' and source=1 and device_type=1 ',
