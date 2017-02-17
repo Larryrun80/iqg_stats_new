@@ -36,7 +36,7 @@ def get_daily_fin_data(cnx, start, end, daily_data):
     '''
 
     platforms_condition = {
-        'group_app': ' and o.source=0 and o.device_type in (1,2) ',
+        'group_app': ' and o.source=0 and o.device_type in (0,1,2) ',
         'group_wx': ' and o.source=0 and o.device_type=3 ',
         'jx': ' and o.source=2 ',
         'app_iOS': ' and o.source=1 and o.device_type=2 ',
