@@ -37,7 +37,7 @@ def get_daily_fin_data(cnx, start, end, daily_data):
 
     platforms_condition = {
         'group_app': ' and o.source=0 and o.device_type in (0,1,2)'
-                     ' and pin_status=2',
+                     ' and pin_status=2 and so.status in (2,3)',
         'group_wx': ' and o.source=0 and o.device_type=3 ',
         'jx': ' and o.source=2 ',
         'app_iOS': ' and o.source=1 and o.device_type=2 ',
@@ -66,6 +66,7 @@ def get_daily_fin_data(cnx, start, end, daily_data):
                                o.sku_total_price-o.settlement_price,
                                o.sku_total_price*m.service_rate)/100,2) profit
               from hsq_order_dealed_new o
+              left join hsq_trade_sub_order_backup so on so.order_id=o.order_id
               left join hsq_sku_promotion_backup sp on o.sku_id=sp.sku_id
               left join hsq_merchant_backup m on m.id=o.merchant_id
               where o.order_at>'{start}'
