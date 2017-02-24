@@ -13,7 +13,7 @@ class QueryItem(StatsBase):
 
     def __init__(self, name):
         self.attrs += ['source', 'code', 'paging',
-                       'sort_cols', 'filters', 'params']
+                       'sort_cols', 'filters', 'params', 'summary']
         for attr in self.attrs:
             setattr(self, attr, None)
         self.count = None  # for pagination
@@ -43,6 +43,19 @@ class QueryItem(StatsBase):
                              current_page)
 
         self.columns = data['columns']
+
+        if self.summary:
+            sl = []
+            for i, op in enumerate(self.summary):
+                value = '-'
+                if op == '+':
+                    value = 0
+                    for row in data['data']:
+                        if type(row[i]) in (int, float):
+                            value += float(row[i])
+                sl.append(value)
+
+            data['data'] = list(data['data']) + [sl]
         return data['data']
 
     def get_result_count(self):
