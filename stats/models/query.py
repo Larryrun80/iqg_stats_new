@@ -1,3 +1,4 @@
+import decimal
 import os
 
 import yaml
@@ -51,7 +52,8 @@ class QueryItem(StatsBase):
                 if op == '+':
                     value = 0
                     for row in data['data']:
-                        if type(row[i]) in (int, float):
+                        print(type(row[i]))
+                        if type(row[i]) in (int, float, decimal.Decimal):
                             value += float(row[i])
                 sl.append(value)
 
