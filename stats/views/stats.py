@@ -167,6 +167,7 @@ def query(tag):
                    record_name='users',
                    bs_version=3)
 
+    flash(data)
     return render_template('stats/query.html', data=data, pagination=p)
 
 
