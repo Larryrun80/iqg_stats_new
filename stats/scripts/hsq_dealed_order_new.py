@@ -211,14 +211,11 @@ def update_pin_status(stats_cnx, hsq_cnx):
 
     # get status from hsq
     sql_get_status = '''
-            select po.order_id,
-                   if((po.pin_event_status=2 and so.status=4),
-                       99,
-                       po.pin_event_status),
-                    po.pin_event_id
-            from pin_activities_order po
-            inner join trade_sub_order so on po.order_id=so.order_id
-            where po.order_id in {}
+            select  order_id,
+                    pin_event_status,
+                    pin_event_id
+            from pin_activities_order
+            where order_id in {}
     '''.format(pin_oids)
     h_cursor.execute(sql_get_status)
     s_orders = h_cursor.fetchall()
