@@ -54,8 +54,8 @@ class QueryItem(StatsBase):
                     for row in data['data']:
                         print(type(row[i]))
                         if type(row[i]) in (int, float, decimal.Decimal):
-                            value += round(float(row[i]), 2)
-                sl.append(value)
+                            value += float(row[i])
+                sl.append(round(value, 2))
 
             data['data'] = list(data['data']) + [sl]
         return data['data']
