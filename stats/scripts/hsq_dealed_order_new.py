@@ -152,7 +152,7 @@ def get_order_detail(cnx, oid):
 
     cursor = cnx.cursor()
     cursor.execute(sql)
-    data = cursor.fetchone()
+    data = cursor.fetchall()
     cursor.close()
 
     return data
@@ -361,13 +361,14 @@ if __name__ == '__main__':
             # print_log('dealing {} / {} ...'.format(i, dealed_len))
             order_info = get_order_detail(hsq_cnx, oid[0])
             if order_info:
-                order_info = list(order_info)
-                # add category
-                order_info[-3] = get_category_name(order_info[-3], categories)
-                # add coupon info
-                order_info = order_info + get_coupons(hsq_cnx, oid[0])
+                for oi in order_info:
+                    oi = list(oi)
+                    # add category
+                    oi[-3] = get_category_name(oi[-3], categories)
+                    # add coupon info
+                    oi = oi + get_coupons(hsq_cnx, oid[0])
 
-                insert_data(stats_cnx, order_info)
+                    insert_data(stats_cnx, oi)
 
         # update pin orders
         print_log("Start update pin orders status")
