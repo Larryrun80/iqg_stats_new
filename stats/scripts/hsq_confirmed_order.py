@@ -14,6 +14,7 @@ def get_last_confirm_time(cnx):
     sql = '''
             select unix_timestamp(max(confirmed_at))
             from hsq_order_confirmed
+            where confirmed_at<now()
           '''
 
     cursor = cnx.cursor()
