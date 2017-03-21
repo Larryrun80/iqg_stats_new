@@ -122,7 +122,7 @@ def get_order_detail(cnx, oid):
                     tso.platform_discount platform_discount,
                     tso.merchant_discount merchant_discount,
                     tso.settlement_price settlement_price,
-                    if(o.order_type=3, '0', o.source_type) source,
+                    if(o.order_type in (3,4,5), '0', o.source_type) source,
                     o.delivery_price order_delivery_price,
                     o.consignee consignee,
                     o.consignee_phone consignee_phone,
