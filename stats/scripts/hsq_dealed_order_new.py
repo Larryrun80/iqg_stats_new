@@ -348,7 +348,7 @@ if __name__ == '__main__':
     try:
         hsq_cnx = init_mysql('hsq_ro')
         stats_cnx = init_mysql()
-        start_id = 2148730164  # get_start_orderid(stats_cnx)
+        start_id = get_start_orderid(stats_cnx)
 
         categories = get_categories(hsq_cnx)
         print_log('Start at id: {}'.format(start_id))
