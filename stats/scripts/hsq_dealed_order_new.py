@@ -150,7 +150,7 @@ def get_order_detail(cnx, oid):
         inner join  product_basic pb on pb.id=sb.product_id
         inner join  trade_order_ext oe on oe.order_id=o.id
         inner join  user u on u.id=o.user_id
-        inner join  user_login_info ul on u.id=ul.user_id
+        left join  user_login_info ul on u.id=ul.user_id
              where  o.id={oid}
     '''.format(oid=oid)
 
