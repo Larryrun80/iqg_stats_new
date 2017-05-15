@@ -330,7 +330,7 @@ class CampaignAnalyzer():
                     from hsq_order_dealed_new
                     where user_id={uid}
                     and order_at<'{order_deadline}'
-                    and sku_total_price
+                    and source>-1
             '''.format(uid=user['uid'],
                        order_deadline=user['first_order_time'].replace(
                         days=self.delay_dates).format('YYYY-MM-DD'))
