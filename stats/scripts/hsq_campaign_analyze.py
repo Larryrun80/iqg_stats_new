@@ -80,6 +80,8 @@ class CampaignAnalyzer():
             self.get_lottery_user_outline()
         if self.campaign_type == 3:
             self.get_pin_user_outline()
+        if self.campaign_type == 4:
+            self.get_normal_user_outline()
 
         self.print_log("counting reperchase info")
         self.get_repeat_purchase_count()
@@ -263,6 +265,55 @@ class CampaignAnalyzer():
 
         self.users = new_users
 
+    def get_normal_user_outline(self):
+        cursor = self.cnx.cursor()
+        sql = '''
+                select  user_id,
+                        min(order_at) first_order_time,
+                        min(order_id) min_oid,
+                        min(if(source=1
+                               and `platform_coupon_id`=0
+                               and order_at>'{start}'
+                               and order_at<'{end}',
+                               order_id,
+                               null)) min_pin_oid
+                from hsq_order_dealed_new
+                where user_id in
+                    (
+                        select user_id
+                        from hsq_order_dealed_new
+                        where source=1
+                        and `platform_coupon_id`=0
+                        and order_at>'{start}'
+                        and order_at<'{end}'
+                    )
+                and order_at<'{deadline}'
+                group by user_id
+        '''.format(start=self.args['start'].format('YYYY-MM-DD'),
+                   end=self.args['end'].replace(days=1).format('YYYY-MM-DD'),
+                   deadline=self.deadline.format('YYYY-MM-DD'))
+        # print(sql)
+        cursor.execute(sql)
+        data = cursor.fetchall()
+        cursor.close()
+
+        self.result['description'] = \
+            '基于 {} ~ {} 普通购买用户的统计'.format(
+                self.args['start'].format('YYYY-MM-DD'),
+                self.args['end'].format('YYYY-MM-DD'))
+
+        self.result['total'] = len(data)
+        new_users = []
+        for user in data:
+            if user[-1] == user[-2]:
+                new_users.append({
+                    'uid': user[0],
+                    'first_order_time': arrow.get(user[1])
+                })
+        self.result['new_cnt'] = len(new_users)
+
+        self.users = new_users
+
     def get_repeat_purchase_count(self):
         cursor = self.cnx.cursor()
         for user in tqdm(self.users):
@@ -325,6 +376,7 @@ def makeChoice():
 1. 根据优惠券id查询
 2. 根据抽奖团sku id查询
 3. 常规拼团用户
+4. 常规购买用户
 
 ''')
     while campaign_type not in ('1', '2', '3'):
@@ -338,7 +390,7 @@ def makeChoice():
         sku_id = input('请输入抽奖团 sku id: ')
         return CampaignAnalyzer(2, sku_id=sku_id)
 
-    if campaign_type == '3':
+    if campaign_type in ('3', '4'):
         ca = CampaignAnalyzer(3)
         print('请输入查询时间段，直接回车默认查询过去30天的常规拼团用户')
         start_date = input('请以 YYYY-MM-DD 格式，输入开始时间 [{}]:'.format(
@@ -384,5 +436,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt or EOFError:
         print()
         print('bye...')
-    except aException as e:
+    except Exception as e:
         print(e)
