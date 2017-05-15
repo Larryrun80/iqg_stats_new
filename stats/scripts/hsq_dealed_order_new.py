@@ -122,7 +122,7 @@ def get_order_detail(cnx, oid):
                     tso.platform_discount platform_discount,
                     tso.merchant_discount merchant_discount,
                     tso.settlement_price settlement_price,
-                    if(o.order_type in (4, 5) or tso.status=11,
+                    if(pao.type is not null and pao.type=2,
                        '-1',
                        if(o.order_type=3,
                           '0',
@@ -150,7 +150,8 @@ def get_order_detail(cnx, oid):
         inner join  product_basic pb on pb.id=sb.product_id
         inner join  trade_order_ext oe on oe.order_id=o.id
         inner join  user u on u.id=o.user_id
-        left join  user_login_info ul on u.id=ul.user_id
+        left join   user_login_info ul on u.id=ul.user_id
+        left join   pin_activities_order pao on pao.order_id=o.id
              where  o.id={oid}
     '''.format(oid=oid)
 
