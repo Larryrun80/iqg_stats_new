@@ -286,6 +286,7 @@ class CampaignAnalyzer():
                         and `platform_coupon_id`=0
                         and order_at>'{start}'
                         and order_at<'{end}'
+                        and user_id!=101
                     )
                 and order_at<'{deadline}'
                 group by user_id
@@ -379,7 +380,7 @@ def makeChoice():
 4. 常规购买用户
 
 ''')
-    while campaign_type not in ('1', '2', '3'):
+    while campaign_type not in ('1', '2', '3', '4'):
         campaign_type = input('请输入序号： ')
 
     if campaign_type == '1':
