@@ -37,7 +37,7 @@ class CampaignAnalyzer():
         }
 
         # default value
-        if self.campaign_type in (3, ):
+        if self.campaign_type in (3, 4):
             self.args['start'] = self.deadline.replace(days=-30)
             self.args['end'] = self.deadline.replace(days=-1)
 
@@ -62,6 +62,7 @@ class CampaignAnalyzer():
             '1':    {'coupon_id': int},
             '2':    {'sku_id': int},
             '3':    {'start': arrow, 'end': arrow},
+            '4':    {'start': arrow, 'end': arrow},
         }
 
         if str(self.campaign_type) not in illegal_args.keys():
@@ -392,7 +393,7 @@ def makeChoice():
         return CampaignAnalyzer(2, sku_id=sku_id)
 
     if campaign_type in ('3', '4'):
-        ca = CampaignAnalyzer(3)
+        ca = CampaignAnalyzer(int(campaign_type))
         print('请输入查询时间段，直接回车默认查询过去30天的常规拼团用户')
         start_date = input('请以 YYYY-MM-DD 格式，输入开始时间 [{}]:'.format(
             ca.args['start'].format('YYYY-MM-DD')))
