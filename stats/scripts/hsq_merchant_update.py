@@ -29,11 +29,12 @@ def get_merchant_info(cnx, ids):
     for m in ids:
         mid = m[0]
         sql = '''
-                select  service_rates,
-                        bd_name,
-                        name
-                  from  merchant_ext
-                 where  merchant_id={mid}
+                select  me.service_rates,
+                        me.bd_name,
+                        m.name
+                  from  merchant_ext me
+            inner join  merchant m on me.merchant_id=m.id
+                 where  me.merchant_id={mid}
         '''.format(mid=mid)
 
         cursor.execute(sql)
