@@ -30,7 +30,8 @@ def get_merchant_info(cnx, ids):
         mid = m[0]
         sql = '''
                 select  service_rates,
-                        bd_name
+                        bd_name,
+                        name
                   from  merchant_ext
                  where  merchant_id={mid}
         '''.format(mid=mid)
@@ -38,7 +39,7 @@ def get_merchant_info(cnx, ids):
         cursor.execute(sql)
         info = cursor.fetchall()
         if info:
-            merchants.append((mid, info[0][0], info[0][1]))
+            merchants.append((mid, info[0][0], info[0][1], info[0][2]))
     cursor.close()
 
     return merchants
@@ -51,9 +52,10 @@ def update_merchant(cnx, data):
         sql = '''
             update hsq_merchant_backup
             set service_rate={rate},
-                bd_name='{bd}'
+                bd_name='{bd}',
+                name='{name}'
             where id={mid}
-        '''.format(mid=m[0], rate=m[1], bd=m[2])
+        '''.format(mid=m[0], rate=m[1], bd=m[2], name=m[3])
 
         # print(sql)
         cursor.execute(sql)
