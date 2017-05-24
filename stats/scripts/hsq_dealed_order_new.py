@@ -144,7 +144,8 @@ def get_order_detail(cnx, oid):
                     ul.last_login_ip last_login_ip,
                     pb.cate_ids categories,
                     oe.guid guid,
-                    oe.device_type device_type
+                    oe.device_type device_type,
+                    oe.tsmcid tsmcid
               from  trade_order o
         inner join  merchant m on m.id=o.merchant_id
         inner join  trade_sub_order tso on o.id=tso.order_id
@@ -189,7 +190,7 @@ def insert_data(cnx, data):
             username, mobile, register_at, channel, invite_user_id,
             last_login_ip, categories, guid, device_type,
             platform_coupon_id, platform_coupon,
-            merchant_coupon_id, merchant_coupon)
+            merchant_coupon_id, merchant_coupon, tsmcid)
             values {}
           '''.format(ins_val)
 
