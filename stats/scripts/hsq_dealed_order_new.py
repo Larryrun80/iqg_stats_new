@@ -188,9 +188,9 @@ def insert_data(cnx, data):
             source, order_delivery_price, consignee, consignee_phone,
             province, city, address, user_id,
             username, mobile, register_at, channel, invite_user_id,
-            last_login_ip, categories, guid, device_type,
+            last_login_ip, categories, guid, device_type, tsmcid,
             platform_coupon_id, platform_coupon,
-            merchant_coupon_id, merchant_coupon, tsmcid)
+            merchant_coupon_id, merchant_coupon)
             values {}
           '''.format(ins_val)
 
