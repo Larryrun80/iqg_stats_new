@@ -372,7 +372,7 @@ if __name__ == '__main__':
                 for oi in order_info:
                     oi = list(oi)
                     # add category
-                    oi[-3] = get_category_name(oi[-3], categories)
+                    oi[-4] = get_category_name(oi[-4], categories)
                     # add coupon info
                     oi = oi + get_coupons(hsq_cnx, oid[0])
 
